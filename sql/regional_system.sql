@@ -34,12 +34,21 @@ CREATE TABLE IF NOT EXISTS `price_modifier` (
 CREATE TABLE IF NOT EXISTS `product_order` (
 	`barcode` BIGINT UNSIGNED,
 	`date` DATE,
-	`store` INT UNSIGNED,
-	`qty` INT,
-	`price` NUMERIC(10,2),
-	PRIMARY KEY (`barcode`,`date`,`store`),
+	`store_id` INT UNSIGNED,
+	`units` INT,
+	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
-	FOREIGN KEY (`store`) REFERENCES `local_stores`(`id`)
+	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)
+)  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+
+CREATE TABLE IF NOT EXISTS `product_shipped` (
+	`barcode` BIGINT UNSIGNED,
+	`date` DATE,
+	`store_id` INT UNSIGNED,
+	`units` INT,
+	PRIMARY KEY (`barcode`,`date`,`store_id`),
+	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
+	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
 CREATE TABLE IF NOT EXISTS `accounts` (
@@ -55,3 +64,9 @@ CREATE TABLE IF NOT EXISTS `balance_sheet` (
 	PRIMARY KEY (`code`),
 	FOREIGN KEY (`code`) REFERENCES `accounts`(`code`)
 )   ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+
+CREATE TABLE IF NOT EXISTS `admin` (
+	`username` VARCHAR(255),
+	`password` CHAR(40),
+	PRIMARY KEY (`username`)
+)  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;

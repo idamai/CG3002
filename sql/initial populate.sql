@@ -13,3 +13,5 @@ INSERT INTO `warehouse` (`barcode`,`stock`) VALUES
 INSERT INTO `local_stores` VALUES
 (1,"Bedok 1101", "Bedok Street 1920"),
 (2,"Changi Expo", "Changi Lane 5");
+
+INSERT INTO `admin` VALUES ("admin",SHA1("iamsexy#1"));
