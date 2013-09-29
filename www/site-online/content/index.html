@@ -57,12 +57,12 @@
 			</div>
 			<div class = "clearfix"></div>
 			<div id ="add-stock-btn" class ="btn btn-success left">Add Stock</div>
-			<div id ="discard-stock-btn" class = "btn btn-danger right">Discard Stock </div>
+			<!--<div id ="discard-stock-btn" class = "btn btn-danger right">Discard Stock </div>-->
 			<div class = "clearfix"></div>
 			<div id ="close-stock-popup" class = "middle btn btn-primary">Close</div>
 		</div>
 		<div class= "hidden" id ="add-stock-popup">
-			<h1 id = "stock-item-barcode"></h1>
+			<h2 class = "stock-item-barcode"></h2>
 			<form id = "add-stock-form">
 				<table>
 					<tr>
@@ -73,10 +73,27 @@
 						<td>Batch Date:</td>
 						<td><input id = "stock-batchdate" type="date" name="batchdate"></td>
 					</tr>
+				</table>
 			</form>
 			<div class = "clearfix"></div>
 			<div id ="add-stock-cfm" class ="btn btn-success left">Add Stock</div>
 			<div id ="add-stock-cncl" class = "btn btn-danger right">Cancel</div>
+			<div class = "clearfix"></div>
+		</div>
+		<div class= "hidden" id ="discard-stock-popup">
+			<h2 class = "stock-item-barcode"></h2>
+			<h2 class = "stock-item-batchdate"></h2>
+			<form id = "discard-stock-form">
+				<table>
+					<tr>
+						<td>Quantity:</td>
+						<td><input id = "discard-quantity" type="number" name="quantity"></td>
+					</tr>
+				</table>
+			</form>
+			<div class = "clearfix"></div>
+			<div id ="discard-stock-cfm" class ="btn btn-danger left">Discard Stock</div>
+			<div id ="discard-stock-cncl" class = "btn btn-primary right">Cancel</div>
 			<div class = "clearfix"></div>
 		</div>
 	</body>

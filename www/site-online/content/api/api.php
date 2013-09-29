@@ -75,11 +75,18 @@ try{
 		$retArr["status"] = $OK;
 		break;
 	//halfbaked stock reducing system
-	case "reduce_stock":
+	case "update_stock":
 		$barcode = mysql_real_escape_string($p["barcode"]);
 		$quantity = $p["quantity"];
+		$date =  $p["date"];
+		$date = date('Y-m-d',strtotime($date));	
+		$sql = "UPDATE `warehouse` SET `stock` = ".$quantity." WHERE `batchdate` = '".$date."' AND `barcode` = ".$barcode;
+		$res = mysql_query($sql);
+		if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		
 		$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE barcode = ".$barcode;
 		$res = mysql_query($sql);
+		
 		if (!$res) throw new Exception("Database access failed: " . mysql_error());
 		$rows = mysql_num_rows($res);
 		$availableStocks =  array();
@@ -90,6 +97,9 @@ try{
 											"stock" => mysql_result($res,$j,'stock')
 										);		
 		}
+		$retArr["barcode"] = $p["barcode"];
+		$retArr["result"] = $availableStocks;
+		$retArr["status"] = $OK;
 		//-----not finished----
 		break;
 	case "retreive_order_list":
@@ -151,6 +161,9 @@ try{
 		}
 		$retArr["status"] = $OK;
 		break;
+	case "update_stock_batch":
+		break;
+	//function to run stock recording for multiple products
 	case "record_stock":
 		break;
 	case "record_shipped":

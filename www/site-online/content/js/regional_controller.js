@@ -64,9 +64,11 @@ $(document).ready(function(){
 							  
 });
 
-regControl.initAddStock = function(barcode) {
+regControl.initAddStock = function() {
+	var barcode;
 	$("#add-stock-btn").off().on("click",function(){
-		$("#stock-item-barcode").html(barcode);
+		barcode = $(this).data("barcode");
+		$(".stock-item-barcode").html(barcode);
 		$("#add-stock-popup").removeClass("hidden");
 	});
 	
@@ -86,7 +88,41 @@ regControl.initAddStock = function(barcode) {
 		$("#stock-quantity").val("");
 	});
 }
-
+regControl.initDiscardStock = function(barcode) {
+	var batchdate;
+	var current;
+	var barcode;
+	$(".discard-stock-btn").off().on("click",function(){
+		barcode = $(this).data("barcode");
+		batchdate = $(this).data("batchdate");
+		current = $(this).data("stock");
+		$(".stock-item-barcode").html(barcode);
+		$(".stock-item-batchdate").html(batchdate);
+		$("#discard-stock-popup").removeClass("hidden");
+	});
+	
+	$("#discard-stock-cfm").off().on("click",function(){
+		quantity = $("#discard-quantity").val();
+		if (quantity > current)
+			alert("You want to discard more stocks than the available stocks!");
+		else {
+			var bool = confirm("You will discard batch on "+batchdate+" as many as "+quantity+" units of product "+barcode);
+			if (bool) {
+				regControl.api_call(	{action:"update_stock",barcode:barcode,date:batchdate,quantity:(current-quantity)},
+											regControl._ret_stock_cb,
+											null);
+			
+				if (!$("#discard-stock-popup").hasClass("hidden"))
+				$("#discard-stock-popup").addClass("hidden");
+			}
+		}			
+	});
+	$("#discard-stock-cncl").off().on("click",function(){
+		if (!$("#discard-stock-popup").hasClass("hidden"))
+			$("#discard-stock-popup").addClass("hidden");
+		$("#discard-quantity").val("");
+	});
+}
 // ------------------------------ CALLBACKS ------------------------------
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
@@ -132,17 +168,21 @@ regControl._ret_stock_cb = function(data){
 		ml+=	'	<tr>';
 		ml+=	'		<th>Batch Date</th>';
 		ml+=	'		<th>Stock</th>';
+		ml+=	'		<th>Discard</th>';
 		ml+=	'	</tr>';
 		for (i = 0; i< data.result.length ; i++) {
 			ml+='<tr>';
 			for (var propt in data.result[i]) {
 				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
 			}
+			ml+='<td class = "discard-stock-btn btn btn-danger" data-barcode = '+barcode+' data-stock = '+data.result[i].stock+' data-batchdate = '+data.result[i].batchdate+' >Discard Stock</td>';
 			ml+="</tr>";
 		}
 		ml+=	'</table>';
 		$('#stock-list-container').html(ml);
-		regControl.initAddStock(barcode);
+		$('#add-stock-btn').data("barcode",barcode);
+		regControl.initAddStock();
+		regControl.initDiscardStock();
 	}else{
 		alert("operation fail");
 	}
