@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `product_order` (
 	`barcode` BIGINT UNSIGNED,
 	`date` DATE,
 	`store_id` INT UNSIGNED,
-	`units` INT,
+	`quantity` INT,
 	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
 	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `product_shipped` (
 	`barcode` BIGINT UNSIGNED,
 	`date` DATE,
 	`store_id` INT UNSIGNED,
-	`units` INT,
+	`quantity` INT,
 	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
 	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)

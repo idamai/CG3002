@@ -14,7 +14,6 @@
 			<div class = "hero-unit">
 				<h1>HyperMarket Management System</h1>
 			</div>
-			<button id = "test-button">Test Here</button>
 			<div class="clearfix"></div>
 			<div class = "menu left">
 				<div class = "btn btn-primary btn-block" id="product-btn">Product List</div>
@@ -26,15 +25,6 @@
 			<div class = "content right">
 				<div class = "content-item" id= "content-container">
 				Please select one of the menu on the left.
-				</div>
-				<div class = "content-item hidden" id= "store-list-container">
-					<table class = "table" id = "store-list">
-						<tr>
-							<th>Store ID</th>
-							<th>Name</th>
-							<th>Location</th>
-						</tr>
-					</table>
 				</div>
 				<div class = "content-item hidden" id= "order-list-container">
 					<table class = "table" id = "order-list">
@@ -70,6 +60,24 @@
 			<div id ="discard-stock-btn" class = "btn btn-danger right">Discard Stock </div>
 			<div class = "clearfix"></div>
 			<div id ="close-stock-popup" class = "middle btn btn-primary">Close</div>
+		</div>
+		<div class= "hidden" id ="add-stock-popup">
+			<h1 id = "stock-item-barcode"></h1>
+			<form id = "add-stock-form">
+				<table>
+					<tr>
+						<td>Quantity:</td>
+						<td><input id = "stock-quantity" type="number" name="quantity"></td>
+					</tr>
+					<tr>
+						<td>Batch Date:</td>
+						<td><input id = "stock-batchdate" type="date" name="batchdate"></td>
+					</tr>
+			</form>
+			<div class = "clearfix"></div>
+			<div id ="add-stock-cfm" class ="btn btn-success left">Add Stock</div>
+			<div id ="add-stock-cncl" class = "btn btn-danger right">Cancel</div>
+			<div class = "clearfix"></div>
 		</div>
 	</body>
 </html>

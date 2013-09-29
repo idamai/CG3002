@@ -1,8 +1,13 @@
+/*
+	This regControl class is the main controller for the regional system
+*/
 window.regControl = window.regControl || {};
+
 //setup
 regControl.api_url = "/api/api.php";
 regControl.api_path = "/api/";
 regControl.data_chunk_size = 10;
+
 //for future mobile checker
 regControl.isMobile = function() {
 	var check = false;
@@ -10,11 +15,12 @@ regControl.isMobile = function() {
 	return check;
 };
 
+//constants
 regControl.constants = {   OK : "ok",
 						   FAIL : "fail",
 						   NETWORK_FAIL : "network",
 						   LOGIN : "login" };
-						   
+//standardized ajax api call						   
 regControl.api_call = function (senddata, callback, ctx){
 	$.post(regControl.api_url,
 		   {data: senddata},
@@ -28,15 +34,26 @@ regControl.api_call = function (senddata, callback, ctx){
 			callback.call(ctx || null, data);
 		});
 }; 
+
 $(document).ready(function(){
-	$("#test-button").off().on("click", function(){
-		regControl.api_call(	{action:"retreive_stock", barcode: 59030623},
-								regControl.callback,
-								null);
-	});
 	$("#product-btn").off().on("click", function(){
 		regControl.api_call(	{action:"retreive_product"},
 								regControl._ret_prod_cb,
+								null);
+	});
+	$("#store-btn").off().on("click", function(){
+		regControl.api_call(	{action:"retreive_store"},
+								regControl._ret_store_cb,
+								null);
+	});
+	$("#order-btn").off().on("click", function(){
+		regControl.api_call(	{action:"retreive_order_list"},
+								regControl._ret_order_list_cb,
+								null);
+	});
+	$("#shipment-btn").off().on("click", function(){
+		regControl.api_call(	{action:"retreive_shipped_list"},
+								regControl._ret_shipped_list_cb,
 								null);
 	});
 	$("#close-stock-popup").off().on("click", function(){
@@ -47,9 +64,30 @@ $(document).ready(function(){
 							  
 });
 
+regControl.initAddStock = function(barcode) {
+	$("#add-stock-btn").off().on("click",function(){
+		$("#stock-item-barcode").html(barcode);
+		$("#add-stock-popup").removeClass("hidden");
+	});
+	
+	$("#add-stock-cfm").off().on("click",function(){
+		batchDate = $("#stock-batchdate").val();
+		quantity = $("#stock-quantity").val();
+		regControl.api_call(	{action:"receive_stock",barcode:barcode,batchdate:batchDate,quantity:quantity},
+									regControl._ret_stock_cb,
+									null);
+		if (!$("#add-stock-popup").hasClass("hidden"))
+			$("#add-stock-popup").addClass("hidden");						
+	});
+	$("#add-stock-cncl").off().on("click",function(){
+		if (!$("#add-stock-popup").hasClass("hidden"))
+			$("#add-stock-popup").addClass("hidden");
+		$("#stock-batchdate").val("");
+		$("#stock-quantity").val("");
+	});
+}
 
-
-//dummy callback
+// ------------------------------ CALLBACKS ------------------------------
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
 		var i=0;
@@ -68,7 +106,7 @@ regControl._ret_prod_cb = function(data){
 			for (var propt in data.result[i]) {
 				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
 			}
-			ml+='<td class = "view-stock btn btn-inverse" data-barcode='+data.result[i].barcode+' >View Stock</td>';
+			ml+='<td class = "view-stock btn btn-inverse" data-barcode='+data.result[i].barcode+' >Add/View Stock</td>';
 			ml+="</tr>";
 		}
 		ml+='</table';
@@ -88,6 +126,7 @@ regControl._ret_prod_cb = function(data){
 regControl._ret_stock_cb = function(data){
 	if (data.status==regControl.constants.OK){
 		var i=0;
+		barcode = data.barcode;
 		var ml='';
 		ml+=	'<table class = "table" id = "stock-list">';
 		ml+=	'	<tr>';
@@ -103,16 +142,82 @@ regControl._ret_stock_cb = function(data){
 		}
 		ml+=	'</table>';
 		$('#stock-list-container').html(ml);
+		regControl.initAddStock(barcode);
 	}else{
 		alert("operation fail");
 	}
 };
 
-//dummy callback
-regControl.callback = function(data){
+regControl._ret_store_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		alert("SUCCESS!");
+		var i=0;
+		var ml='';
+		ml+=	'<table class = "table" id = "store-list">';
+		ml+=	'	<tr>';
+		ml+=	'		<th>Store ID</th>';
+		ml+=	'		<th>Store Name</th>';
+		ml+=	'		<th>Location</th>';
+		ml+=	'	</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+="</tr>";
+		}
+		ml+=	'</table>';
+		$('#content-container').html(ml);
 	}else{
-		alert("FAIL!");
+		alert("operation fail");
+	}
+};
+
+regControl._ret_order_list_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		var i=0;
+		var ml='';
+		ml+=	'<table class = "table" id = "order-list">';
+		ml+=	'	<tr>';
+		ml+=	'		<th>Barcode</th>';
+		ml+=	'		<th>Date</th>';
+		ml+=	'		<th>Store ID</th>';
+		ml+=	'		<th>Quantity</th>';
+		ml+=	'	</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+="</tr>";
+		}
+		ml+=	'</table>';
+		$('#content-container').html(ml);
+	}else{
+		alert("operation fail");
+	}
+};
+
+regControl._ret_shipped_list_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		var i=0;
+		var ml='';
+		ml+=	'<table class = "table" id = "shipped-list">';
+		ml+=	'	<tr>';
+		ml+=	'		<th>Barcode</th>';
+		ml+=	'		<th>Date</th>';
+		ml+=	'		<th>Store ID</th>';
+		ml+=	'		<th>Quantity</th>';
+		ml+=	'	</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+="</tr>";
+		}
+		ml+=	'</table>';
+		$('#content-container').html(ml);
+	}else{
+		alert("operation fail");
 	}
 };
