@@ -34,11 +34,81 @@ $(document).ready(function(){
 								regControl.callback,
 								null);
 	});
+	$("#product-btn").off().on("click", function(){
+		regControl.api_call(	{action:"retreive_product"},
+								regControl._ret_prod_cb,
+								null);
+	});
+	$("#close-stock-popup").off().on("click", function(){
+		if (!$("#view-stock-popup").hasClass("hidden"))
+			$("#view-stock-popup").addClass("hidden");
+			$('#stock-list-container').html("");
+	});
 							  
 });
+
+
+
 //dummy callback
+regControl._ret_prod_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		var i=0;
+		var ml='';
+		ml+= '<table class = "table" id = "product-list">'
+		ml+= '			<tr>';
+		ml+= '				<th>Barcode</th>';
+		ml+= '				<th>Name</th>';
+		ml+= '				<th>Category</th>';
+		ml+= '				<th>Manufacturer</th>';
+		ml+= '				<th>Cost</th>';
+		ml+= '				<th>Stock</th>';
+		ml+= '			</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+='<td class = "view-stock btn btn-inverse" data-barcode='+data.result[i].barcode+' >View Stock</td>';
+			ml+="</tr>";
+		}
+		ml+='</table';
+		$('#content-container').html(ml);
+		$('.view-stock').off().on("click", function(){
+			itemBarcode = $(this).data("barcode");
+			regControl.api_call(	{action:"retreive_stock",barcode:itemBarcode},
+									regControl._ret_stock_cb,
+									null);
+			$('#view-stock-popup').removeClass("hidden");
+	});	
+	}else{
+		alert("operation fail");
+	}
+};
 
+regControl._ret_stock_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		var i=0;
+		var ml='';
+		ml+=	'<table class = "table" id = "stock-list">';
+		ml+=	'	<tr>';
+		ml+=	'		<th>Batch Date</th>';
+		ml+=	'		<th>Stock</th>';
+		ml+=	'	</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+="</tr>";
+		}
+		ml+=	'</table>';
+		$('#stock-list-container').html(ml);
+	}else{
+		alert("operation fail");
+	}
+};
 
+//dummy callback
 regControl.callback = function(data){
 	if (data.status==regControl.constants.OK){
 		alert("SUCCESS!");

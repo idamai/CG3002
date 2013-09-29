@@ -1,0 +1,58 @@
+.right {
+	float: right;
+}
+
+.left {
+	float: left;
+}
+
+.clearfix{
+	clear: both;
+}
+
+.menu {
+	width: 250px;
+	padding: 15px;
+	background-color:darkgrey;
+	border-radius: 5px;
+}
+.content{
+	height:500px;
+	width : 620px;
+	overflow-x:auto;
+	overflow-y:auto;
+	background-color:lightgrey;
+	border-radius: 5px;
+	padding: 15px;
+}
+.hidden {
+	display:none;
+}
+#view-stock-popup {
+	position:fixed;
+	top:50%;
+	left:50%;
+	margin-left:-250px;
+	margin-top:-250px;
+	width:500px;
+	height:auto;
+	padding:25px;
+	border-radius:5px;
+	background-color:white;
+	border: 1px solid black;
+	box-shadow:20px 20px 20px #888888;
+	z-index:10;
+}
+#add-stock-btn{
+margin-top:10px;
+}
+#discard-stock-btn{
+margin-top: 10px;
+}
+
+.middle {
+	margin-top: 10px;
+	margin-left:175px;
+	margin-right:175px;
+	width: 150px;
+}

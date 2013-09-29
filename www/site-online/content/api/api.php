@@ -36,6 +36,26 @@ $retArr["captured"] = $p;
 
 try{
 	switch ($p["action"]){
+	case "retreive_product":
+		$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product`";
+		$res = mysql_query($sql);
+		
+		if (!$res) die ("Database access failed: " . mysql_error());
+		$rows = mysql_num_rows($res);
+		$retArr["result"] =  array();
+		for ($j = 0 ; $j < $rows ; $j++)
+		{
+			$retArr["result"][$j] = array(
+											"barcode" => mysql_result($res,$j,'barcode'),
+											"name" => mysql_result($res,$j,'name'),
+											"category" => mysql_result($res,$j,'category'),
+											"manufacturer" => mysql_result($res,$j,'manufacturer'),
+											"cost" => mysql_result($res,$j,'cost')
+											
+										);
+		}
+		$retArr["status"] = $OK;
+		break;
 	case "retreive_stock":
 		$barcode = mysql_real_escape_string($p["barcode"]);
 		$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE barcode = ".$barcode;

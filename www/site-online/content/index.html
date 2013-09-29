@@ -3,9 +3,11 @@
 	<head>
 		<title>HyperMarket Management System</title>
 		<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="css/regCustom.css" rel="stylesheet" media="screen">
 		<script src="js/jquery-1.10.2.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/regional_controller.js"></script>
+
 	</head>
 	<body>
 		<div class = "container">
@@ -13,6 +15,61 @@
 				<h1>HyperMarket Management System</h1>
 			</div>
 			<button id = "test-button">Test Here</button>
+			<div class="clearfix"></div>
+			<div class = "menu left">
+				<div class = "btn btn-primary btn-block" id="product-btn">Product List</div>
+				<div class = "btn btn-primary btn-block" id="store-btn">Store List</div>
+				<div class = "btn btn-primary btn-block" id="order-btn">Order List</div>
+				<div class = "btn btn-primary btn-block" id="shipment-btn">Shipment List</div>
+				<div class = "btn btn-inverse btn-block" id="finance-btn">Financial Report</div>
+			</div>
+			<div class = "content right">
+				<div class = "content-item" id= "content-container">
+				Please select one of the menu on the left.
+				</div>
+				<div class = "content-item hidden" id= "store-list-container">
+					<table class = "table" id = "store-list">
+						<tr>
+							<th>Store ID</th>
+							<th>Name</th>
+							<th>Location</th>
+						</tr>
+					</table>
+				</div>
+				<div class = "content-item hidden" id= "order-list-container">
+					<table class = "table" id = "order-list">
+						<tr>
+							<th>Date</th>
+							<th>Barcode</th>
+							<th>Store ID</th>
+							<th>Quantity</th>
+						</tr>
+					</table>
+				</div>
+				<div class = "content-item hidden" id= "shipped-list-container">
+					<table class = "table" id = "shipped-list">
+						<tr>
+							<th>Date</th>
+							<th>Barcode</th>
+							<th>Store ID</th>
+							<th>Quantity</th>
+						</tr>
+					</table>
+				</div>
+				<div class = "content-item hidden" id= "financial-report">...loading...</div>
+			</div>
+			<div class = "clearfix">
+			</div>
+		</div>
+		<div class= "hidden" id ="view-stock-popup">
+			<div id ="stock-list-container">
+				
+			</div>
+			<div class = "clearfix"></div>
+			<div id ="add-stock-btn" class ="btn btn-success left">Add Stock</div>
+			<div id ="discard-stock-btn" class = "btn btn-danger right">Discard Stock </div>
+			<div class = "clearfix"></div>
+			<div id ="close-stock-popup" class = "middle btn btn-primary">Close</div>
 		</div>
 	</body>
 </html>
