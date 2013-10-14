@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS `product` (
 
 CREATE TABLE IF NOT EXISTS `warehouse` (
 	`barcode` BIGINT UNSIGNED,
-	`stock` INT,
 	`batchdate` DATE DEFAULT "0000-00-00",
+	`stock` INT,	
 	PRIMARY KEY (`barcode`,`batchdate`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`)	
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `product_order` (
 	`date` DATE,
 	`store_id` INT UNSIGNED,
 	`quantity` INT,
+	`processed` BIT DEFAULT 0;
 	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
 	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)

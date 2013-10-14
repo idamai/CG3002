@@ -26,32 +26,24 @@
 				<div class = "content-item" id= "content-container">
 				Please select one of the menu on the left.
 				</div>
-				<div class = "content-item hidden" id= "order-list-container">
-					<table class = "table" id = "order-list">
-						<tr>
-							<th>Date</th>
-							<th>Barcode</th>
-							<th>Store ID</th>
-							<th>Quantity</th>
-						</tr>
-					</table>
+				<div class="hidden" id="process-order-btns">
+					<div class = "btn btn-primary left" id="process-all-btn">Process All Orders</div>
+					<div class = "btn btn-primary left" id="process-date-btn">Process Date</div>
+					<div class = "btn btn-primary left" id="process-barcode-btn">Process Barcodes</div>
 				</div>
-				<div class = "content-item hidden" id= "shipped-list-container">
-					<table class = "table" id = "shipped-list">
-						<tr>
-							<th>Date</th>
-							<th>Barcode</th>
-							<th>Store ID</th>
-							<th>Quantity</th>
-						</tr>
-					</table>
-				</div>
-				<div class = "content-item hidden" id= "financial-report">...loading...</div>
 			</div>
 			<div class = "clearfix">
 			</div>
 		</div>
-		<div class= "hidden" id ="view-stock-popup">
+		<div class = "popup hidden" id = "process-date-popup">
+			<h2>Select a Date to Process</h2>
+			<div id = "order-date-input-selection"></div>
+			<div class = "clearfix"></div>
+			<div class = "btn btn-primary left" id = "process-date-cfm">Process</div>
+			<div class = "btn btn-primary right" id = "process-date-cancel">Cancel</div>
+			<div class = "clearfix"></div>
+		</div>
+		<div class= "popup hidden" id ="view-stock-popup">
 			<div id ="stock-list-container">
 				
 			</div>
@@ -61,7 +53,7 @@
 			<div class = "clearfix"></div>
 			<div id ="close-stock-popup" class = "middle btn btn-primary">Close</div>
 		</div>
-		<div class= "hidden" id ="add-stock-popup">
+		<div class= "popup hidden" id ="add-stock-popup">
 			<h2 class = "stock-item-barcode"></h2>
 			<form id = "add-stock-form">
 				<table>
@@ -80,7 +72,7 @@
 			<div id ="add-stock-cncl" class = "btn btn-danger right">Cancel</div>
 			<div class = "clearfix"></div>
 		</div>
-		<div class= "hidden" id ="discard-stock-popup">
+		<div class= "popup hidden" id ="discard-stock-popup">
 			<h2 class = "stock-item-barcode"></h2>
 			<h2 class = "stock-item-batchdate"></h2>
 			<form id = "discard-stock-form">
@@ -95,6 +87,11 @@
 			<div id ="discard-stock-cfm" class ="btn btn-danger left">Discard Stock</div>
 			<div id ="discard-stock-cncl" class = "btn btn-primary right">Cancel</div>
 			<div class = "clearfix"></div>
+		</div>
+		<div id = "footer" class = "clearfix">
+			<span class = "right">
+				Copyright Le Sexy Team 2013
+			</span>
 		</div>
 	</body>
 </html>

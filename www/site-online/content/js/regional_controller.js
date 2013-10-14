@@ -37,21 +37,25 @@ regControl.api_call = function (senddata, callback, ctx){
 
 $(document).ready(function(){
 	$("#product-btn").off().on("click", function(){
+		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_product"},
 								regControl._ret_prod_cb,
-								null);
+								null);		
 	});
 	$("#store-btn").off().on("click", function(){
+		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_store"},
 								regControl._ret_store_cb,
 								null);
 	});
 	$("#order-btn").off().on("click", function(){
+		regControl.showOrderButtons();
 		regControl.api_call(	{action:"retreive_order_list"},
 								regControl._ret_order_list_cb,
 								null);
 	});
 	$("#shipment-btn").off().on("click", function(){
+		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_shipped_list"},
 								regControl._ret_shipped_list_cb,
 								null);
@@ -61,8 +65,28 @@ $(document).ready(function(){
 			$("#view-stock-popup").addClass("hidden");
 			$('#stock-list-container').html("");
 	});
-							  
+	$("#process-all-btn").off().on("click", function(){
+		regControl.api_call(	{action:"process_order_unprocessed"},
+								regControl._ret_order_list_cb,
+								null);
+	});
+	$("#process-date-btn").off().on("click", function(){
+		regControl.api_call(	{action:"populate_unprocessed_order_date"},
+								regControl._populate_unprocessed_order_date_cb,
+								null);
+	});
 });
+
+
+
+regControl.hideOrderButtons = function(){
+	if (!$("#process-order-btns").hasClass("hidden"))
+		$("#process-order-btns").addClass("hidden");
+}
+
+regControl.showOrderButtons = function(){
+	$("#process-order-btns").removeClass("hidden");
+}
 
 regControl.initAddStock = function() {
 	var barcode;
@@ -108,7 +132,7 @@ regControl.initDiscardStock = function(barcode) {
 		else {
 			var bool = confirm("You will discard batch on "+batchdate+" as many as "+quantity+" units of product "+barcode);
 			if (bool) {
-				regControl.api_call(	{action:"update_stock",barcode:barcode,date:batchdate,quantity:(current-quantity)},
+				regControl.api_call(	{action:"update_batch_stock",barcode:barcode,date:batchdate,quantity:(current-quantity)},
 											regControl._ret_stock_cb,
 											null);
 			
@@ -233,6 +257,22 @@ regControl._ret_order_list_cb = function(data){
 		ml+=	'</table>';
 		$('#content-container').html(ml);
 	}else{
+		alert("operation fail");
+	}
+};
+
+regControl._populate_unprocessed_order_date_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		var i;
+		var ml = '';
+		ml += 	'<select>';
+		for ( i = 0; i < data.result.length; i++) {
+			ml += '<option value="'+data.result[i]+'">'+data.result[i]+'</option>';
+		}
+		ml +=	'</select>';
+		$("#order-date-input-selection").html(ml);
+		$("#process-date-popup").removeClass("hidden");
+	} else {		
 		alert("operation fail");
 	}
 };

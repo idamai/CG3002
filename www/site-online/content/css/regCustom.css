@@ -28,35 +28,29 @@
 .hidden {
 	display:none;
 }
-#view-stock-popup {
+
+.popup{
 	position:fixed;
 	top:50%;
 	left:50%;
+	background-color:white;	
+	border-radius:5px;
+	border: 1px solid black;
+	box-shadow:20px 20px 20px #888888;	
+	padding:25px;
+	z-index:10;
+}
+#view-stock-popup {	
 	margin-left:-250px;
 	margin-top:-250px;
 	width:500px;
 	height:auto;
-	padding:25px;
-	border-radius:5px;
-	background-color:white;
-	border: 1px solid black;
-	box-shadow:20px 20px 20px #888888;
-	z-index:10;
 }
 #add-stock-popup {
-	position:fixed;
-	top:50%;
-	left:50%;
 	margin-left:-200px;
 	margin-top:-250px;
 	width:auto;
 	height:auto;
-	padding:25px;
-	border-radius:5px;
-	background-color:white;
-	border: 1px solid black;
-	box-shadow:20px 20px 20px #888888;
-	z-index:20;
 }
 #add-stock-btn{
 margin-top:10px;
@@ -65,19 +59,12 @@ margin-top:10px;
 margin-top: 10px;
 }
 
+
 #discard-stock-popup {
-	position:fixed;
-	top:50%;
-	left:50%;
 	margin-left:-200px;
 	margin-top:-250px;
 	width:auto;
 	height:auto;
-	padding:25px;
-	border-radius:5px;
-	background-color:white;
-	border: 1px solid black;
-	box-shadow:20px 20px 20px #888888;
 	z-index:20;
 }
 .middle {
