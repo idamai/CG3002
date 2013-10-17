@@ -31,3 +31,6 @@ INSERT INTO `product_shipped` VALUES
 (23418003,"2013-09-30",2,400),
 (26398554,"2013-09-30",1,600),
 (59030623,"2013-09-30",2,1000);
+
+INSERT INTO `price_modifier`
+	SELECT `barcode`,1.25,7 FROM `product`;

@@ -67,13 +67,50 @@ $(document).ready(function(){
 	});
 	$("#process-all-btn").off().on("click", function(){
 		regControl.api_call(	{action:"process_order_unprocessed"},
-								regControl._ret_order_list_cb,
+								regControl._process_all_order_cb,
 								null);
 	});
 	$("#process-date-btn").off().on("click", function(){
 		regControl.api_call(	{action:"populate_unprocessed_order_date"},
 								regControl._populate_unprocessed_order_date_cb,
 								null);
+	});
+	$("#process-barcode-btn").off().on("click", function(){
+		regControl.api_call(	{action:"populate_unprocessed_order_barcode"},
+								regControl._populate_unprocessed_order_barcode_cb,
+								null);
+	});
+	$("#process-barcode-cfm").off().on("click",function(){
+		var barcode;
+		barcode = $("#order-barcode-input-selection select").val();
+		regControl.api_call(	{action:"process_order_barcode", barcode:barcode},
+									regControl._process_all_order_cb,
+									null);
+		if (!$("#process-barcode-popup").hasClass("hidden"))
+				$("#process-barcode-popup").addClass("hidden");
+		$("#order-barcode-input-selection").html("");		
+	});
+	$("#process-barcode-cancel").off().on("click",function(){
+		if (!$("#process-barcode-popup").hasClass("hidden"))
+				$("#process-barcode-popup").addClass("hidden");
+		$("#order-barcode-input-selection").html("");		
+	});
+	$("#process-date-cfm").off().on("click",function(){
+		var date;
+		date = $("#order-date-input-selection select").val();
+		regControl.api_call(	{action:"process_order_date", date:date},
+									regControl._process_all_order_cb,
+									null);
+		if (!$("#process-date-popup").hasClass("hidden"))
+				$("#process-date-popup").addClass("hidden");
+		$("#order-date-input-selection").html("");		
+	});
+	$("#process-date-cancel").off().on("click",function(){
+		if (!$("#process-date-popup").hasClass("hidden"))
+				$("#process-date-popup").addClass("hidden");
+		$("#order-date-input-selection").html("");
+			if (!$("#process-date-popup").hasClass("hidden"))
+				$("#process-date-popup").addClass("hidden");			
 	});
 });
 
@@ -89,13 +126,14 @@ regControl.showOrderButtons = function(){
 }
 
 regControl.initAddStock = function() {
-	var barcode;
+	var barcode;	
+	$('#stock-batchdate').val(new Date().toJSON().slice(0,10));
+	
 	$("#add-stock-btn").off().on("click",function(){
 		barcode = $(this).data("barcode");
 		$(".stock-item-barcode").html(barcode);
 		$("#add-stock-popup").removeClass("hidden");
 	});
-	
 	$("#add-stock-cfm").off().on("click",function(){
 		batchDate = $("#stock-batchdate").val();
 		quantity = $("#stock-quantity").val();
@@ -236,29 +274,44 @@ regControl._ret_store_cb = function(data){
 	}
 };
 
+
 regControl._ret_order_list_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		var i=0;
-		var ml='';
-		ml+=	'<table class = "table" id = "order-list">';
-		ml+=	'	<tr>';
-		ml+=	'		<th>Barcode</th>';
-		ml+=	'		<th>Date</th>';
-		ml+=	'		<th>Store ID</th>';
-		ml+=	'		<th>Quantity</th>';
-		ml+=	'	</tr>';
-		for (i = 0; i< data.result.length ; i++) {
-			ml+='<tr>';
-			for (var propt in data.result[i]) {
-				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-			}
-			ml+="</tr>";
-		}
-		ml+=	'</table>';
-		$('#content-container').html(ml);
+		regControl.populate_order_list(data);
 	}else{
 		alert("operation fail");
 	}
+};
+
+regControl._process_all_order_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		regControl.populate_order_list(data);
+		if (data.leftover_order)
+			alert("Some of the product cannot be processed due to insufficient stock. Please review this manually.");
+	}else{
+		alert("operation fail");
+	}
+};
+
+regControl.populate_order_list = function(data) {
+	var i=0;
+	var ml='';
+	ml+=	'<table class = "table" id = "order-list">';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Barcode</th>';
+	ml+=	'		<th>Date</th>';
+	ml+=	'		<th>Store ID</th>';
+	ml+=	'		<th>Quantity</th>';
+	ml+=	'	</tr>';
+	for (i = 0; i< data.result.length ; i++) {
+		ml+='<tr>';
+		for (var propt in data.result[i]) {
+			ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+		}
+		ml+="</tr>";
+	}
+	ml+=	'</table>';
+	$('#content-container').html(ml);
 };
 
 regControl._populate_unprocessed_order_date_cb = function(data) {
@@ -272,6 +325,22 @@ regControl._populate_unprocessed_order_date_cb = function(data) {
 		ml +=	'</select>';
 		$("#order-date-input-selection").html(ml);
 		$("#process-date-popup").removeClass("hidden");
+	} else {		
+		alert("operation fail");
+	}
+};
+
+regControl._populate_unprocessed_order_barcode_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		var i;
+		var ml = '';
+		ml += 	'<select>';
+		for ( i = 0; i < data.result.length; i++) {
+			ml += '<option value="'+data.result[i]+'">'+data.result[i]+'</option>';
+		}
+		ml +=	'</select>';
+		$("#order-barcode-input-selection").html(ml);
+		$("#process-barcode-popup").removeClass("hidden");
 	} else {		
 		alert("operation fail");
 	}
