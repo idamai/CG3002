@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `product_order` (
 	`date` DATE,
 	`store_id` INT UNSIGNED,
 	`quantity` INT,
-	`processed` BIT DEFAULT 0;
+	`processed` BIT DEFAULT 0,
 	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
 	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)

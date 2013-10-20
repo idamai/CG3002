@@ -2,6 +2,7 @@
 require_once ("../../objects/settings.php");
 require_once("../../objects/login.php");
 
+
 $OK = "ok";
 $FAIL = "fail";
 $ERROR = "error";
@@ -39,76 +40,47 @@ $retArr["captured"] = $p;
 try{
 	switch ($p["action"]){
 	case "retreive_product":
-		$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product`";
-		$res = mysql_query($sql,$conn);
-		
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++)
-		{
-			$retArr["result"][$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"name" => mysql_result($res,$j,'name'),
-											"category" => mysql_result($res,$j,'category'),
-											"manufacturer" => mysql_result($res,$j,'manufacturer'),
-											"cost" => mysql_result($res,$j,'cost')
-											
-										);
-		}
+		require_once("../../objects/Controller/ProductListController.php");
+		$plc = new ProductListController($conn);
+		$retArr["result"] = $plc->retrieveProductList();
 		$retArr["status"] = $OK;
 		break;
 	case "retreive_stock":
-		$retArr["barcode"]= $p["barcode"];
-		$barcode = mysql_real_escape_string($p["barcode"]);
-		$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE barcode = ".$barcode." AND `stock` > 0";
-		$res = mysql_query($sql,$conn);
+		require_once("../../objects/Controller/WarehouseController.php");
+		$wc = new WarehouseController($conn);
 		
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++)
-		{
-			$retArr["result"][$j] = array(
-											"batchdate" => mysql_result($res,$j,'batchdate'),
-											"stock" => mysql_result($res,$j,'stock')
-										);		
-		}
+		$barcode = $p["barcode"];
+		
+		$retArr["result"] =  $wc->retrieveStockDetails($barcode);
+		$retArr["barcode"]= $barcode;
+		
 		$retArr["status"] = $OK;
 		break;
 	
 	case "update_batch_stock":
-		$barcode = mysql_real_escape_string($p["barcode"]);
+		require_once("../../objects/Controller/WarehouseController.php");
+		$wc = new WarehouseController($conn);
+		
+		$barcode = $p["barcode"];
 		$quantity = $p["quantity"];
 		$date =  $p["date"];
-		$sql = "UPDATE `warehouse` SET `stock` = ".$quantity." WHERE `batchdate` = '".$date."' AND `barcode` = ".$barcode;
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
 		
-		$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE barcode = ".$barcode;
-		$res = mysql_query($sql,$conn);
+		$wc->addNewStock($barcode, $quantity, $date);
 		
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$availableStocks =  array();
-		for ($j = 0 ; $j < $rows ; $j++)
-		{
-			$availableStocks[$j] = array(
-											"batchdate" => mysql_result($res,$j,'batchdate'),
-											"stock" => mysql_result($res,$j,'stock')
-										);		
-		}
-		$retArr["barcode"] = $p["barcode"];
+		$availableStocks = $wc->retrieveStockDetails($barcode);
+		$retArr["barcode"] = $barcode;
 		$retArr["result"] = $availableStocks;
 		$retArr["status"] = $OK;
 		//-----not finished----
 		break;
 	case "retreive_order_list":
-		$retArr["result"] =  getAllUnprocessedOrder($conn);
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
 		$retArr["status"] = $OK;
 		break;
 	case "retreive_shipped_list":
-		$sql = "SELECT * FROM `product_shipped` ORDER BY `date` DESC";
+		$sql = 'SELECT * FROM `product_shipped` ORDER BY `date` DESC';
 		$res = mysql_query($sql,$conn);
 		if (!$res) throw new Exception("Database access failed: " . mysql_error());
 		$rows = mysql_num_rows($res);
@@ -126,14 +98,19 @@ try{
 		break;
 	//this is for receiving stock for 1 item. mutilple item version not updateed
 	case "receive_stock":
-		$barcode = mysql_real_escape_string($p["barcode"]);
-		$date = mysql_real_escape_string($p["batchdate"]);
-		$date = date('Y-m-d',strtotime($date));		
-		$quantity = mysql_real_escape_string($p["quantity"]);
+		$barcode = $p["barcode"];
+		$date = $p["batchdate"];
+		$quantity = $p["quantity"];				
+		$date = date('Y-m-d',strtotime($date));	
+		
+		$date = mysql_real_escape_string($date);
+		$barcode = mysql_real_escape_string($barcode);
+		$quantity = mysql_real_escape_string($quantity);
 		//insert new stock
-		$sql = "INSERT INTO `warehouse` VALUES (".$barcode.",".$quantity.",'".$date."')";
+		$sql = 'INSERT INTO `warehouse` (`barcode`, `stock`, `batchdate`) VALUES ('.$barcode.' , '.$quantity.' , "'.$date.'")';
 		$res = mysql_query($sql,$conn);
 		if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		
 		//view stock
 		$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE barcode = ".$barcode;
 		$res = mysql_query($sql,$conn);
@@ -158,65 +135,36 @@ try{
 		$file=fopen("welcome.txt","r") or exit("Unable to open file!");
 		break;
 	case "populate_unprocessed_order_date":
-		$sql = "SELECT DISTINCT `date` FROM `product_order` WHERE `processed` = 0";
-		$res = mysql_query($sql, $conn);
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++) {
-			$retArr["result"][$j] = mysql_result($res,$j,'date');									
-		}
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		$retArr["result"] = $oc->getUnprocessedOrderDates();
 		$retArr["status"] = $OK;
 		break;
 	case "populate_unprocessed_order_barcode":
-		$sql = "SELECT DISTINCT `barcode` FROM `product_order` WHERE `processed` = 0";
-		$res = mysql_query($sql, $conn);
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++) {
-			$retArr["result"][$j] = mysql_result($res,$j,'barcode');									
-		}
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		$retArr["result"] = $oc->getUnprocessedOrderBarcodes();
 		$retArr["status"] = $OK;
 		break;
 	case "process_order_date":
+		require_once("../../objects/Controller/OrderController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		$oc = new OrderController($conn);
+		$wc = new WarehouseController($conn);
+		
 		$date = date('Y-m-d',strtotime($p["date"]));
-		$date = mysql_real_escape_string($date);
-		$sql = "SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 AND `date` = '".$date."' GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$toBeOrdered =  array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$toBeOrdered[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"quantity" => mysql_result($res,$j,'quantity')
-										);		
-		}
-		$sql = "SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` WHERE `barcode` in (";
-		for ($j = 0; $j < count($toBeOrdered) ; $j++){
-			if ($j > 0) {
-				$sql.=" , ";
-			}
-			$sql.=$toBeOrdered[$j]["barcode"];
-		}
-		$sql .= ") GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$availableBarcode = array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$availableBarcode[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"stock" => mysql_result($res,$j,'stock')
-										);		
-		}
+		
+		$toBeOrdered = $oc->getAllOrderForDate($date);		
+		
+		$availableBarcode = $wc->retrieveStockForOrder($toBeOrdered);
 		
 		//check whether all of the stocks are sufficient
-		$processableList = checkProcessableOrder($availableBarcode, $toBeOrdered,$conn);
+		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);
 		
 		//process the sufficient stocks
-		processOrder($processableList["canBeProcessed"],$date,$conn);
+		$oc->processOrder($processableList["canBeProcessed"],$date);
 		
-		$retArr["result"] = getAllUnprocessedOrder($conn);
+		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
@@ -227,45 +175,23 @@ try{
 		break;
 	case "process_order_unprocessed":
 		//grab the total number of orders per barcode
-		$sql = "SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$toBeOrdered =  array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$toBeOrdered[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"quantity" => mysql_result($res,$j,'quantity')
-										);		
-		}
+		require_once("../../objects/Controller/OrderController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		$oc = new OrderController($conn);
+		$wc = new WarehouseController($conn);
+		
+		$toBeOrdered = $oc->getAllOrderPerBarcode();
 		//grab the total available stocks per barcode
-		$sql = "SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` WHERE `barcode` in (";
-		for ($j = 0; $j < count($toBeOrdered) ; $j++){
-			if ($j > 0) {
-				$sql.=" , ";
-			}
-			$sql.=$toBeOrdered[$j]["barcode"];
-		}
-		$sql .= ") GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$availableBarcode = array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$availableBarcode[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"stock" => mysql_result($res,$j,'stock')
-										);		
-		}
+		$availableBarcode = $wc->retrieveStockForOrder($toBeOrdered);
 		
 		//check whether all of the stocks are sufficient
-		$processableList = checkProcessableOrder($availableBarcode, $toBeOrdered);
+		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);
 		
 		//process the sufficient stocks
-		processOrder($processableList["canBeProcessed"],null,$conn);
+		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
 		//leave the not processed barcode
 		
-		$retArr["result"] = getAllUnprocessedOrder($conn);
+		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
@@ -274,44 +200,24 @@ try{
 		$retArr["status"] = $OK;
 		break;
 	case "process_order_barcode":
+		require_once("../../objects/Controller/OrderController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		$oc = new OrderController($conn);
+		$wc = new WarehouseController($conn);
+		
 		$barcode = $p["barcode"];
-		$sql = "SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 AND `barcode` = ".$barcode." GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$toBeOrdered =  array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$toBeOrdered[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"quantity" => mysql_result($res,$j,'quantity')
-										);		
-		}
+		$toBeOrdered = $oc->getAllOrderForBarcode($barcode);
 		//grab the total available stocks per barcode
-		$sql = "SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` WHERE `barcode` in (";
-		for ($j = 0; $j < count($toBeOrdered) ; $j++){
-			if ($j > 0) {
-				$sql.=" , ";
-			}
-			$sql.=$toBeOrdered[$j]["barcode"];
-		}
-		$sql .= ") GROUP BY `barcode`";
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$availableBarcode = array();
-		for ($j = 0 ; $j < $rows ; $j++){
-			$availableBarcode[$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"stock" => mysql_result($res,$j,'stock')
-										);		
-		}
+		$availableBarcode = $wc->retrieveStockForOrder($toBeOrdered);
 		
 		//check whether all of the stocks are sufficient
-		$processableList = checkProcessableOrder($availableBarcode, $toBeOrdered);		
+		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);		
 		//process the sufficient stocks
-		processOrder($processableList["canBeProcessed"],null,$conn);
-		$retArr["result"] = getAllUnprocessedOrder($conn);
+		$oc->processOrder($processableList["canBeProcessed"],null);
+		
+		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
+		
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
 		else
@@ -352,126 +258,5 @@ try{
 dbclose($conn);
 echo json_encode($retArr);
 
-function processBarcodeOrder($connection, $barcode, $quantity){
-	$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE `barcode` = ".$barcode." AND STOCK > 0 ORDER BY `batchdate`";
-	$res = mysql_query($sql,$connection);
-	if (!$res) throw new Exception("Database access failed: " . mysql_error());
-	$rows = mysql_num_rows($res);
-	$batches =  array();
-	for ($j = 0 ; $j < $rows ; $j++)
-	{
-		$batches[$j] = array(
-										"batchdate" => mysql_result($res,$j,'batchdate'),
-										"stock" => mysql_result($res,$j,'stock')
-									);		
-	}
-	$j = 0;
-	while ($quantity > 0){
-		if ($quantity > $batches[$j]["stock"]){
-			$quantity -= $batches[$j]["stock"];
-			$batches[$j]["stock"]=0;
-		} else {
-			$batches[$j]["stock"]-=$quantity;
-			$quantity = 0;
-		}
-		$j++;
-	}
-	for ($i = 0; $i < $j; $i++) {
-		$sql = "UPDATE `warehouse` SET `stock` = ".$batches[$i]["stock"]." WHERE `barcode` = ".$barcode." AND `batchdate` = ".$batches[$i]["batchdate"];
-		$res = mysql_query($sql,$connection);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-	}
-}
 
-function getAllUnprocessedOrder($conn) {
-	$sql = "SELECT * FROM `product_order` WHERE `processed` = 0";
-	$res = mysql_query($sql,$conn);
-	if (!$res) throw new Exception("Database access failed: " . mysql_error());
-	$rows = mysql_num_rows($res);
-	$retArr =  array();
-	for ($j = 0 ; $j < $rows ; $j++){
-		$retArr[$j] = array(
-										"barcode" => mysql_result($res,$j,'barcode'),
-										"date" => mysql_result($res,$j,'date'),
-										"store_id" => mysql_result($res,$j,'store_id'),
-										"quantity" => mysql_result($res,$j,'quantity')
-									);		
-	}
-	return $retArr;
-}
-
-function processOrder($canBeProcessed,$date,$conn) {
-	if (count($canBeProcessed) > 0) {
-			$sql = "UPDATE `product_order` SET `processed` = 1 WHERE `barcode` IN ( ";
-			$sql_shipped = "INSERT INTO `product_shipped` SELECT `barcode`, `date`, `store_id`, `quantity` FROM `product_order` WHERE `barcode` IN ( ";
-			for ($j = 0; $j < count($canBeProcessed); $j++) {
-				processBarcodeOrder($conn,$canBeProcessed[$j]["barcode"],$canBeProcessed[$j]["quantity"]);
-				if ($j > 0) {
-					$sql.=" , ";
-					$sql_shipped.=" , ";
-				}
-				$sql.=$canBeProcessed[$j]["barcode"];
-				$sql_shipped.=$canBeProcessed[$j]["barcode"];
-			}
-			$sql.=" ) AND `processed` = 0";
-			$sql_shipped.=" ) AND `processed` = 0"; 
-			
-			if ($date != null) {
-				$sql.="  AND `date` = '".$date."'";
-				$sql_shipped.="  AND `date` = '".$date."'";
-			}
-			
-			$res = mysql_query($sql_shipped,$conn);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			
-			$res = mysql_query($sql,$conn);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-	}
-}
-
-function checkProcessableOrder($availableBarcode, $toBeOrdered){
-	$canBeProcessed = array();
-	$cannotBeProcessed = array();
-	$cannotBeProcessedIndex = array();
-	$normalizing = 0;
-	if (count($toBeOrdered)> count($availableBarcode)){
-		for ($j  = 0; $j < count($toBeOrdered); $j++) {
-			if ($toBeOrdered[$j]["barcode"]!= $availableBarcode[$j-$normalizing]["barcode"]) {
-				$cannotBeProcessed[] = array(
-					"barcode" => $toBeOrdered[$j]["barcode"],
-					"quantity" => $toBeOrdered[$j]["quantity"]
-				);
-				$normalizing+=1;				
-			} else if($toBeOrdered[$j]["quantity"]> $availableBarcode[$j-$normalizing]["stock"]){
-				$cannotBeProcessed[]= array(
-					"barcode" => $toBeOrdered[$j]["barcode"],
-					"quantity" => $toBeOrdered[$j]["quantity"]
-				);
-			} else
-				$canBeProcessed[] = array(
-					"barcode" => $toBeOrdered[$j]["barcode"],
-					"quantity" => $toBeOrdered[$j]["quantity"]
-				);
-		}
-	} else if (count($toBeOrdered)== count($availableBarcode)) {
-		for ($j  = 0; $j < count($toBeOrdered); $j++){
-			if($toBeOrdered[$j]["quantity"]> $availableBarcode[$j]["stock"]){
-				$cannotBeProcessed[] =  array(
-					"barcode" => $toBeOrdered[$j]["barcode"],
-					"quantity" => $toBeOrdered[$j]["quantity"]
-				);
-			} else {
-				$canBeProcessed[] = array(
-					"barcode" => $toBeOrdered[$j]["barcode"],
-					"quantity" => $toBeOrdered[$j]["quantity"]
-				);
-			}
-		}
-	}
-	$retArr = array (
-						"canBeProcessed" => $canBeProcessed,
-						"cannotBeProcessed" => $cannotBeProcessed
-					);
-	return $retArr;
-}
 ?>

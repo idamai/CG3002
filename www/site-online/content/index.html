@@ -23,8 +23,12 @@
 				<div class = "btn btn-inverse btn-block" id="finance-btn">Financial Report</div>
 			</div>
 			<div class = "content right">
+				<input type = "text" id = "search-bar" ></input>
 				<div class = "content-item" id= "content-container">
 				Please select one of the menu on the left.
+				</div>
+				<div class = "hidden" id = "add-new-product-holder">
+					<div class = "btn btn-primary left" id="add-new-product-btn">Add New Product</div>
 				</div>
 				<div class="hidden" id="process-order-btns">
 					<div class = "btn btn-primary left" id="process-all-btn">Process All Orders</div>
@@ -95,6 +99,35 @@
 			<div id ="discard-stock-cfm" class ="btn btn-danger left">Discard Stock</div>
 			<div id ="discard-stock-cncl" class = "btn btn-primary right">Cancel</div>
 			<div class = "clearfix"></div>
+		</div>
+		<div class = "popup hidden" id = "add-new-product">
+			<h2>Please input your new product info</h2>
+			<table>
+				<tr>
+					<td>Barcode</td>
+					<td><input type = "number" id = "new-product-barcode"></input></td>
+				</tr>
+				<tr>
+					<td>Name</td>
+					<td><input type = "text" id = "new-product-name"></input></td>
+				</tr>
+				<tr>
+					<td>Category</td>
+					<td><input type = "text" id = "new-product-category"></input></td>
+				</tr>
+				<tr>
+					<td>Manufacturer</td>
+					<td><input type = "text" id = "new-product-manufacturer"></input></td>
+				</tr>
+				<tr>
+					<td>Cost</td>
+					<td><input type = "number" id = "new-product-cost"></input></td>
+				</tr>
+				<tr>
+					<td>Minimal Stock</td>
+					<td><input type = "number" id = "new-product-minstock"></input></td>
+				</tr>
+			<table>
 		</div>
 		<div id = "footer" class = "clearfix">
 			<span class = "right">

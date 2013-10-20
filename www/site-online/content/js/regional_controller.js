@@ -36,6 +36,9 @@ regControl.api_call = function (senddata, callback, ctx){
 }; 
 
 $(document).ready(function(){
+	
+	regControl.init_search_bar();
+		
 	$("#product-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_product"},
@@ -185,6 +188,15 @@ regControl.initDiscardStock = function(barcode) {
 		$("#discard-quantity").val("");
 	});
 }
+
+regControl.init_search_bar = function(){
+	$("#search-bar").keyup(function() {
+		var userInput = $(this).val();
+		$("#content-container table tbody tr").map(function(index, value) {
+			$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
+		});
+	});
+};
 // ------------------------------ CALLBACKS ------------------------------
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
@@ -215,7 +227,8 @@ regControl._ret_prod_cb = function(data){
 									regControl._ret_stock_cb,
 									null);
 			$('#view-stock-popup').removeClass("hidden");
-	});	
+		});	
+		$("#search-product-bar").removeClass("hidden");
 	}else{
 		alert("operation fail");
 	}
