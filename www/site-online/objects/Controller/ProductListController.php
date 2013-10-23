@@ -1,5 +1,4 @@
 <?php
-	require_once("../../objects/Model/Product.php");
 	class ProductListController{
 		private $connection;
 		function __construct($conn) {
@@ -33,7 +32,19 @@
 			$manufacturer = mysql_real_escape_string($manufacturer);
 			$cost  = mysql_real_escape_string($cost);
 			$minimal_stock  = mysql_real_escape_string($minimal_stock);
+			$sql = 'INSERT INTO `product` (`barcode` , `name`, `category`, `manufacturer`, `cost`, `minimal_stock`) VALUES ( '.$barcode.' , "'.$name. '" , "'.$category.'" , "'.$manufacturer.'" , '. $cost.' , '.$minimal_stock.' )';
+			$res = mysql_query($sql,$this->connection);
+		
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			
+			$sql = 'INSERT INTO `price_modifier` (`barcode` , `margin_multiplier`, `tax`) VALUES ( '.$barcode.' , 1.25 , 7 )';
+			$res = mysql_query($sql,$this->connection);
+			
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		}
+		
+		function deleteProductBarcode($barcode) {
+		
 		}
 		
 	}

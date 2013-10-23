@@ -38,30 +38,35 @@ regControl.api_call = function (senddata, callback, ctx){
 $(document).ready(function(){
 	
 	regControl.init_search_bar();
-		
+	regControl.initAddProductPopup();
+	
 	$("#product-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_product"},
 								regControl._ret_prod_cb,
-								null);		
+								null);
+		regControl.showAddProductButton();
 	});
 	$("#store-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_store"},
 								regControl._ret_store_cb,
 								null);
+		regControl.hideAddProductButton();
 	});
 	$("#order-btn").off().on("click", function(){
 		regControl.showOrderButtons();
 		regControl.api_call(	{action:"retreive_order_list"},
 								regControl._ret_order_list_cb,
 								null);
+		regControl.hideAddProductButton();
 	});
 	$("#shipment-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retreive_shipped_list"},
 								regControl._ret_shipped_list_cb,
 								null);
+		regControl.hideAddProductButton();
 	});
 	$("#close-stock-popup").off().on("click", function(){
 		if (!$("#view-stock-popup").hasClass("hidden"))
@@ -117,7 +122,15 @@ $(document).ready(function(){
 	});
 });
 
+regControl.hideAddProductButton = function() {
+	if (!$("#add-new-product-holder").hasClass("hidden"))
+		$("#add-new-product-holder").addClass("hidden");
+}
 
+
+regControl.showAddProductButton = function(){
+	$("#add-new-product-holder").removeClass("hidden");
+}
 
 regControl.hideOrderButtons = function(){
 	if (!$("#process-order-btns").hasClass("hidden"))
@@ -127,7 +140,30 @@ regControl.hideOrderButtons = function(){
 regControl.showOrderButtons = function(){
 	$("#process-order-btns").removeClass("hidden");
 }
-
+regControl.initAddProductPopup = function() {
+		$("#add-new-product-btn").off().on('click',function(){
+			$("#add-new-product").removeClass("hidden");
+		});
+		$("#add-product-cfm").off().on('click',function() {
+			//ajax
+			var barcode = $("#new-product-barcode").val();
+			var name = $("#new-product-name").val();
+			var category = $("#new-product-category").val();
+			var manufacturer = $("#new-product-manufacturer").val();
+			var cost = $("#new-product-cost").val();
+			var minstock = $("#new-product-minstock").val();
+			regControl.api_call(	{action:"add_new_product",barcode:barcode,name:name,category:category,manufacturer:manufacturer,cost:cost,minimal_stock:minstock},
+									regControl._ret_prod_cb,
+									null);
+			if (!$("#add-new-product").hasClass("hidden"))
+				$("#add-new-product").addClass("hidden");
+		});
+		
+		$("#add-product-cncl").off().on('click',function(){
+			if (!$("#add-new-product").hasClass("hidden"))
+				$("#add-new-product").addClass("hidden");
+		});
+}
 regControl.initAddStock = function() {
 	var barcode;	
 	$('#stock-batchdate').val(new Date().toJSON().slice(0,10));

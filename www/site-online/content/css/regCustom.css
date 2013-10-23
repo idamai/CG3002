@@ -17,14 +17,19 @@
 	border-radius: 5px;
 }
 .content{
-	height:500px;
-	width : 620px;
+	height:475px;
+	width : 625px;
 	overflow-x:auto;
 	overflow-y:auto;
 	background-color:lightgrey;
 	border-radius: 5px;
 	padding: 15px;
 }
+	.content-item{
+		height:400px;
+		overflow-x:show;
+		overflow-y:auto;
+	}
 .hidden {
 	display:none;
 }
@@ -40,6 +45,9 @@
 	padding:25px;
 	z-index:10;
 }
+
+
+
 #view-stock-popup {	
 	margin-left:-250px;
 	margin-top:-250px;
@@ -72,4 +80,11 @@ margin-top: 10px;
 	margin-left:175px;
 	margin-right:175px;
 	width: 150px;
+}
+
+#add-new-product {
+	margin-left:-250px;
+	margin-top:-250px;
+	width:auto;
+	height:auto;
 }

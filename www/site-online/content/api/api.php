@@ -45,6 +45,19 @@ try{
 		$retArr["result"] = $plc->retrieveProductList();
 		$retArr["status"] = $OK;
 		break;
+	case "add_new_product":
+		require_once("../../objects/Controller/ProductListController.php");
+		$barcode = $p["barcode"];
+		$name = $p["name"];
+		$category = $p["category"];
+		$manufacturer = $p["manufacturer"];
+		$cost = $p["cost"];
+		$minimal_stock = $p["minimal_stock"];
+		$plc = new ProductListController($conn);
+		$plc->addNewProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
+		$retArr["result"] = $plc->retrieveProductList();
+		$retArr["status"] = $OK;
+		break;
 	case "retreive_stock":
 		require_once("../../objects/Controller/WarehouseController.php");
 		$wc = new WarehouseController($conn);
