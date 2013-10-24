@@ -63,7 +63,7 @@ $(document).ready(function(){
 								regControl._ret_order_list_cb,
 								null);
 		regControl.hideAddProductButton();
-		regControl.hideAddStoreButton
+		regControl.hideAddStoreButton();
 	});
 	$("#shipment-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
@@ -71,7 +71,7 @@ $(document).ready(function(){
 								regControl._ret_shipped_list_cb,
 								null);
 		regControl.hideAddProductButton();
-		regControl.hideAddStoreButton
+		regControl.hideAddStoreButton();
 	});
 	$("#close-stock-popup").off().on("click", function(){
 		if (!$("#view-stock-popup").hasClass("hidden"))
