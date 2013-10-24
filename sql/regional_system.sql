@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS `product` (
 	`category` VARCHAR (255) NOT NULL,
 	`manufacturer` VARCHAR (255) NOT NULL,
 	`cost` NUMERIC (10,2) NOT NULL,
-	`minimal_stock` INTEGER NOT NULL
+	`minimal_stock` INTEGER NOT NULL,
+	`deleted` BIT DEFAULT 0
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
 CREATE TABLE IF NOT EXISTS `warehouse` (
@@ -20,6 +21,8 @@ CREATE TABLE IF NOT EXISTS `local_stores` (
 	`id` INT UNSIGNED,
 	`name` VARCHAR(255),
 	`location` CHAR(40),
+	`password` CHAR(40),
+	`deleted` BIT NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 

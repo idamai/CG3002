@@ -82,7 +82,13 @@ margin-top: 10px;
 	width: 150px;
 }
 
-#add-new-product {
+#add-edit-product {
+	margin-left:-250px;
+	margin-top:-250px;
+	width:auto;
+	height:auto;
+}
+#add-edit-store {
 	margin-left:-250px;
 	margin-top:-250px;
 	width:auto;

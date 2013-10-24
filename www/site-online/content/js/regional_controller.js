@@ -39,6 +39,7 @@ $(document).ready(function(){
 	
 	regControl.init_search_bar();
 	regControl.initAddProductPopup();
+	regControl.initAddStorePopup();
 	
 	$("#product-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
@@ -46,6 +47,7 @@ $(document).ready(function(){
 								regControl._ret_prod_cb,
 								null);
 		regControl.showAddProductButton();
+		regControl.hideAddStoreButton();
 	});
 	$("#store-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
@@ -53,6 +55,7 @@ $(document).ready(function(){
 								regControl._ret_store_cb,
 								null);
 		regControl.hideAddProductButton();
+		regControl.showAddStoreButton();
 	});
 	$("#order-btn").off().on("click", function(){
 		regControl.showOrderButtons();
@@ -60,6 +63,7 @@ $(document).ready(function(){
 								regControl._ret_order_list_cb,
 								null);
 		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton
 	});
 	$("#shipment-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
@@ -67,6 +71,7 @@ $(document).ready(function(){
 								regControl._ret_shipped_list_cb,
 								null);
 		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton
 	});
 	$("#close-stock-popup").off().on("click", function(){
 		if (!$("#view-stock-popup").hasClass("hidden"))
@@ -132,6 +137,16 @@ regControl.showAddProductButton = function(){
 	$("#add-new-product-holder").removeClass("hidden");
 }
 
+regControl.hideAddStoreButton = function() {
+	if (!$("#add-new-store-holder").hasClass("hidden"))
+		$("#add-new-store-holder").addClass("hidden");
+}
+
+
+regControl.showAddStoreButton = function(){
+	$("#add-new-store-holder").removeClass("hidden");
+}
+
 regControl.hideOrderButtons = function(){
 	if (!$("#process-order-btns").hasClass("hidden"))
 		$("#process-order-btns").addClass("hidden");
@@ -142,9 +157,18 @@ regControl.showOrderButtons = function(){
 }
 regControl.initAddProductPopup = function() {
 		$("#add-new-product-btn").off().on('click',function(){
-			$("#add-new-product").removeClass("hidden");
+			$("#add-edit-product-cfm").html("Add Product");
+			$("#add-edit-product").removeClass("hidden");	
+			$("#new-product-barcode").prop('disabled', false);		
+			$("#new-product-barcode").val("");
+			$("#new-product-name").val("");
+			$("#new-product-category").val("");
+			$("#new-product-manufacturer").val("");
+			$("#new-product-cost").val("");
+			$("#new-product-minstock").val("");
 		});
-		$("#add-product-cfm").off().on('click',function() {
+		
+		$("#add-edit-product-cfm").off().on('click',function() {
 			//ajax
 			var barcode = $("#new-product-barcode").val();
 			var name = $("#new-product-name").val();
@@ -155,13 +179,13 @@ regControl.initAddProductPopup = function() {
 			regControl.api_call(	{action:"add_new_product",barcode:barcode,name:name,category:category,manufacturer:manufacturer,cost:cost,minimal_stock:minstock},
 									regControl._ret_prod_cb,
 									null);
-			if (!$("#add-new-product").hasClass("hidden"))
-				$("#add-new-product").addClass("hidden");
+			if (!$("#add-edit-product").hasClass("hidden"))
+				$("#add-edit-product").addClass("hidden");
 		});
 		
 		$("#add-product-cncl").off().on('click',function(){
-			if (!$("#add-new-product").hasClass("hidden"))
-				$("#add-new-product").addClass("hidden");
+			if (!$("#add-edit-product").hasClass("hidden"))
+				$("#add-edit-product").addClass("hidden");
 		});
 }
 regControl.initAddStock = function() {
@@ -233,42 +257,224 @@ regControl.init_search_bar = function(){
 		});
 	});
 };
+
+regControl.initAddStorePopup = function() {
+	$("#add-new-store-btn").off().on('click',function(){
+		$("#add-edit-store-cfm").html("Add Store");
+		$("#add-edit-store").removeClass("hidden");	
+		$("#new-store-id").prop('disabled', false);
+		$("#new-store-id").val("");
+		$("#new-store-name").val("");
+		$("#new-store-location").val("");
+		$("#new-store-password").val("");
+		$("#new-store-confirmPass").val("");
+	});
+	
+	$("#add-edit-store-cfm").off().on('click',function() {
+		//ajax
+		var storeID = $("#new-store-id").val();
+		var name = $("#new-store-name").val();
+		var location = $("#new-store-location").val();
+		var password = $("#new-store-password").val();
+		var confirmPass = $("#new-store-confirmPass").val();
+		if (password == confirmPass){
+			regControl.api_call(	{action:"add_store",store_id:storeID,name:name,location:location,password:password},
+									regControl._ret_store_cb,
+									null);
+			if (!$("#add-edit-store").hasClass("hidden"))
+				$("#add-edit-store").addClass("hidden");
+		} else if ((password == null)||(password == "")){
+			alert("You can't have an empty password!");
+		} else
+			alert("Your typed password does not match!");
+	});
+	
+	$("#add-store-cncl").off().on('click',function(){
+		if (!$("#add-edit-store").hasClass("hidden"))
+			$("#add-edit-store").addClass("hidden");
+	});
+}
+
+regControl.drawProductList = function (prodArray){
+	var i=0;
+	var ml='';
+	ml+= '<table class = "table" id = "product-list">'
+	ml+= '			<tr>';
+	ml+= '				<th>Barcode</th>';
+	ml+= '				<th>Name</th>';
+	ml+= '				<th>Category</th>';
+	ml+= '				<th>Manufacturer</th>';
+	ml+= '				<th>Cost</th>';
+	ml+= '				<th>Stock</th>';
+	ml+= '				<th>Edit</th>';
+	ml+= '				<th>Delete</th>';
+	ml+= '			</tr>';
+	for (i = 0; i< prodArray.length ; i++) {
+		ml+='<tr>';
+		for (var propt in prodArray[i]) {
+			ml+='<td class ="'+propt+'">'+prodArray[i][propt]+'</td>';
+		}
+		ml+=	'<td class = "view-stock-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Add/View Stock</td>';
+		ml+=	'<td class = "edit-product-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Edit Product</td>';
+		ml+=	'<td class = "delete-product-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Delete Product</td>';
+		ml+=	'</tr>';
+	}
+	ml+='</table>';
+	$('#content-container').html(ml);
+	$('.view-stock-btn').off().on("click", function(){
+		itemBarcode = $(this).data("barcode");
+		regControl.api_call(	{action:"retreive_stock",barcode:itemBarcode},
+								regControl._ret_stock_cb,
+								null);
+		$('#view-stock-popup').removeClass("hidden");
+	});	
+	$('.edit-product-btn').off().on("click", function(){
+		itemBarcode = $(this).data("barcode");
+		regControl.api_call(	{action:"retreive_product_info",barcode:itemBarcode},
+								regControl._edit_prod_cb,
+								null);
+	});	
+	$('.delete-product-btn').off().on("click", function(){
+		itemBarcode = $(this).data("barcode");
+		var r = confirm('Are you sure you want to delete product '+itemBarcode+'? \n This process cannot be undone');
+		if (r)
+			regControl.api_call(	{action:"delete_product",barcode:itemBarcode},
+									regControl._del_prod_cb,
+									null);
+	});	
+	$("#search-product-bar").removeClass("hidden");
+}
+regControl.drawStoreList = function (storeArray) {
+	var i=0;
+	var ml='';
+	ml+=	'<table class = "table" id = "store-list">';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Store ID</th>';
+	ml+=	'		<th>Store Name</th>';
+	ml+=	'		<th>Location</th>';		
+	ml+= 	'		<th>Edit</th>';
+	ml+= 	'		<th>Delete</th>';
+	ml+=	'	</tr>';
+	for (i = 0; i< storeArray.length ; i++) {
+		ml+='<tr>';
+		for (var propt in storeArray[i]) {
+			ml+='<td class ="'+propt+'">'+storeArray[i][propt]+'</td>';
+		}
+		ml+=	'<td class = "edit-store-btn btn btn-inverse" data-store-id='+storeArray[i].store_id+' >Edit Store</td>';
+		ml+=	'<td class = "delete-store-btn btn btn-inverse" data-store-id='+storeArray[i].store_id+' >Delete Store</td>';
+		ml+='</tr>';
+	}
+	ml+=	'</table>';
+	$('#content-container').html(ml);
+	$('.edit-store-btn').off().on("click", function(){
+		storeID = $(this).data("store-id");
+		regControl.api_call(	{action:"retreive_store_info",store_id:storeID},
+								regControl._edit_store_cb,
+								null);
+	});	
+	$('.delete-store-btn').off().on("click", function(){
+		storeID = $(this).data("store-id");
+		var r = confirm('Are you sure you want to delete store '+storeID+'? \n This process cannot be undone');
+		if (r)
+			regControl.api_call(	{action:"delete_store",store_id:storeID},
+									regControl._del_store_cb,
+									null);
+	});	
+}
+
 // ------------------------------ CALLBACKS ------------------------------
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		var i=0;
-		var ml='';
-		ml+= '<table class = "table" id = "product-list">'
-		ml+= '			<tr>';
-		ml+= '				<th>Barcode</th>';
-		ml+= '				<th>Name</th>';
-		ml+= '				<th>Category</th>';
-		ml+= '				<th>Manufacturer</th>';
-		ml+= '				<th>Cost</th>';
-		ml+= '				<th>Stock</th>';
-		ml+= '			</tr>';
-		for (i = 0; i< data.result.length ; i++) {
-			ml+='<tr>';
-			for (var propt in data.result[i]) {
-				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-			}
-			ml+='<td class = "view-stock btn btn-inverse" data-barcode='+data.result[i].barcode+' >Add/View Stock</td>';
-			ml+="</tr>";
-		}
-		ml+='</table';
-		$('#content-container').html(ml);
-		$('.view-stock').off().on("click", function(){
-			itemBarcode = $(this).data("barcode");
-			regControl.api_call(	{action:"retreive_stock",barcode:itemBarcode},
-									regControl._ret_stock_cb,
-									null);
-			$('#view-stock-popup').removeClass("hidden");
-		});	
-		$("#search-product-bar").removeClass("hidden");
+		regControl.drawProductList(data.result);
 	}else{
 		alert("operation fail");
 	}
 };
+
+regControl._edit_prod_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		$("#add-edit-product-cfm").html("Edit Product");
+		$("#add-edit-product").removeClass("hidden");
+		$("#new-product-barcode").prop('disabled', true);
+		$("#new-product-barcode").val(data.result.barcode);
+		$("#new-product-name").val(data.result.name);
+		$("#new-product-category").val(data.result.category);
+		$("#new-product-manufacturer").val(data.result.manufacturer);
+		$("#new-product-cost").val(data.result.cost);
+		$("#new-product-minstock").val(data.result.minimal_stock);
+		
+		
+		$("#add-edit-product-cfm").off().on('click',function() {
+		//ajax
+			var barcode = $("#new-product-barcode").val();
+			var name = $("#new-product-name").val();
+			var category = $("#new-product-category").val();
+			var manufacturer = $("#new-product-manufacturer").val();
+			var cost = $("#new-product-cost").val();
+			var minstock = $("#new-product-minstock").val();
+			regControl.api_call(	{action:"edit_product",barcode:barcode,name:name,category:category,manufacturer:manufacturer,cost:cost,minimal_stock:minstock},
+									regControl._ret_prod_cb,
+									null);
+			if (!$("#add-edit-product").hasClass("hidden"))
+				$("#add-edit-product").addClass("hidden");
+		});
+	}else{
+		alert("operation fail");
+	}
+}
+
+regControl._del_prod_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		alert("Deleted product "+data.deletedBarcode);
+		regControl.drawProductList(data.result);
+	}else{
+		alert("operation fail");
+	}
+}
+
+regControl._edit_store_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		$("#add-edit-store-cfm").html("Edit Store");
+		$("#new-store-id").prop('disabled', true);
+		$("#add-edit-store").removeClass("hidden");
+		$("#new-store-id").val(data.result.store_id);
+		$("#new-store-name").val(data.result.name);
+		$("#new-store-location").val(data.result.location);
+		$("#new-store-password").val("");
+		$("#new-store-confirmPass").val("");
+		$(".edit-store-msg").removeClass("hidden");
+		$("#add-edit-store-cfm").off().on("click",function() {
+			//ajax			
+			var storeID = $("#new-store-id").val();
+			var name = $("#new-store-name").val();
+			var location = $("#new-store-location").val();
+			var password = $("#new-store-password").val();
+			var confirmPass = $("#new-store-confirmPass").val();
+			if (password == confirmPass){
+				regControl.api_call(	{action:"edit_store",store_id:storeID,name:name,location:location,password:password},
+										regControl._ret_store_cb,
+										null);
+				if (!$("#add-edit-store").hasClass("hidden"))
+					$("#add-edit-store").addClass("hidden");
+				if (!$(".edit-store-msg").hasClass("hidden"))
+					$(".edit-store-msg").removeClass("hidden");
+			} else {
+				alert("Your typed password does not match!");
+			}
+		});
+	}else{
+		alert("operation fail");
+	}
+}
+
+regControl._del_store_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		alert("Succesfully deleted store "+data.store_id);
+		regControl.drawStoreList(data.result);
+	}else {
+		alert("Operation fail");
+	}
+}
 
 regControl._ret_stock_cb = function(data){
 	if (data.status==regControl.constants.OK){
@@ -301,23 +507,7 @@ regControl._ret_stock_cb = function(data){
 
 regControl._ret_store_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		var i=0;
-		var ml='';
-		ml+=	'<table class = "table" id = "store-list">';
-		ml+=	'	<tr>';
-		ml+=	'		<th>Store ID</th>';
-		ml+=	'		<th>Store Name</th>';
-		ml+=	'		<th>Location</th>';
-		ml+=	'	</tr>';
-		for (i = 0; i< data.result.length ; i++) {
-			ml+='<tr>';
-			for (var propt in data.result[i]) {
-				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-			}
-			ml+="</tr>";
-		}
-		ml+=	'</table>';
-		$('#content-container').html(ml);
+		regControl.drawStoreList(data.result);
 	}else{
 		alert("operation fail");
 	}

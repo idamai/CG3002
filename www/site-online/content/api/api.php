@@ -58,6 +58,35 @@ try{
 		$retArr["result"] = $plc->retrieveProductList();
 		$retArr["status"] = $OK;
 		break;
+	case "retreive_product_info":
+		require_once("../../objects/Controller/ProductListController.php");
+		$barcode = $p["barcode"];
+		$plc = new ProductListController($conn);
+		$retArr["result"] = $plc->retreiveProductInfo($barcode);
+		$retArr["status"] = $OK;
+		break;
+	case "edit_product":
+		require_once("../../objects/Controller/ProductListController.php");
+		$barcode = $p["barcode"];
+		$name = $p["name"];
+		$category = $p["category"];
+		$manufacturer = $p["manufacturer"];
+		$cost = $p["cost"];
+		$minimal_stock = $p["minimal_stock"];
+		$plc = new ProductListController($conn);
+		$plc->editProductInformation($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
+		$retArr["result"] = $plc->retrieveProductList($barcode);
+		$retArr["status"] = $OK;
+		break;
+	case "delete_product":
+		require_once("../../objects/Controller/ProductListController.php");
+		$barcode = $p["barcode"];
+		$plc = new ProductListController($conn);
+		$plc->deleteProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
+		$retArr["deletedBarcode"] = $barcode;
+		$retArr["result"] = $plc->retrieveProductList($barcode);
+		$retArr["status"] = $OK;
+		break;
 	case "retreive_stock":
 		require_once("../../objects/Controller/WarehouseController.php");
 		$wc = new WarehouseController($conn);
@@ -238,20 +267,48 @@ try{
 		$retArr["status"] = $OK;
 		break;
 	case "retreive_store":
-		$sql = "SELECT * FROM `local_stores`";
-		$res = mysql_query($sql,$conn);
-		
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++)
-		{
-			$retArr["result"][$j] = array(
-											"store_id" => mysql_result($res,$j,'id'),
-											"store_name" => mysql_result($res,$j,'name'),
-											"store_loc" => mysql_result($res,$j,'location')
-										);		
-		}
+		require_once("../../objects/Controller/StoreListController.php");
+		$slc = new StoreListController($conn);
+		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["status"] = $OK;
+		break;
+	case "add_store":
+		$store_id = $p["store_id"];
+		$name = $p["name"];
+		$location  = $p["location"];
+		$password = $p["password"];
+		require_once("../../objects/Controller/StoreListController.php");
+		$slc = new StoreListController($conn);
+		$slc->addNewStore($store_id, $name, $location, $password);
+		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["status"] = $OK;
+		break;
+	case "retreive_store_info":
+		require_once("../../objects/Controller/StoreListController.php");
+		$slc = new StoreListController($conn);
+		$store_id = $p["store_id"];
+		$retArr["result"] = $slc->retreiveStoreInfo($store_id);
+		$retArr["status"] = $OK;
+		break;
+	case "edit_store":
+		$store_id = $p["store_id"];
+		$name = $p["name"];
+		$location  = $p["location"];
+		$password = $p["password"];
+		require_once("../../objects/Controller/StoreListController.php");
+		$slc = new StoreListController($conn);
+		$store_id = $p["store_id"];
+		$slc->editStoreInformation($store_id, $name, $location, $password);
+		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["status"] = $OK;
+		break;
+	case "delete_store":
+		require_once("../../objects/Controller/StoreListController.php");
+		$slc = new StoreListController($conn);
+		$store_id = $p["store_id"];
+		$slc->deleteStore($store_id);
+		$retArr["store_id"] = $store_id;
+		$retArr["result"] =  $slc->retreiveStoreList();
 		$retArr["status"] = $OK;
 		break;
 	}
