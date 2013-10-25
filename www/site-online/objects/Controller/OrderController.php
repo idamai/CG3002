@@ -5,6 +5,9 @@
 			$this->connection = $conn;
 		}
 		
+		// function to load JSON file
+		function loadOrder() {
+		}
 		
 		function processBarcodeOrder( $barcode, $quantity){
 			$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE `barcode` = ".$barcode." AND STOCK > 0 ORDER BY `batchdate`";
