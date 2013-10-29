@@ -43,7 +43,7 @@ $(document).ready(function(){
 	
 	$("#product-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retreive_product"},
+		regControl.api_call(	{action:"retrieve_product"},
 								regControl._ret_prod_cb,
 								null);
 		regControl.showAddProductButton();
@@ -51,7 +51,7 @@ $(document).ready(function(){
 	});
 	$("#store-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retreive_store"},
+		regControl.api_call(	{action:"retrieve_store"},
 								regControl._ret_store_cb,
 								null);
 		regControl.hideAddProductButton();
@@ -59,7 +59,7 @@ $(document).ready(function(){
 	});
 	$("#order-btn").off().on("click", function(){
 		regControl.showOrderButtons();
-		regControl.api_call(	{action:"retreive_order_list"},
+		regControl.api_call(	{action:"retrieve_order_list"},
 								regControl._ret_order_list_cb,
 								null);
 		regControl.hideAddProductButton();
@@ -67,8 +67,16 @@ $(document).ready(function(){
 	});
 	$("#shipment-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retreive_shipped_list"},
+		regControl.api_call(	{action:"retrieve_shipped_list"},
 								regControl._ret_shipped_list_cb,
+								null);
+		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton();
+	});
+	$("#pricing-btn").off().on("click", function(){
+		regControl.hideOrderButtons();
+		regControl.api_call(	{action:"retrieve_pricing_list"},
+								regControl._retrieve_pricing_list_cb,
 								null);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
@@ -323,14 +331,14 @@ regControl.drawProductList = function (prodArray){
 	$('#content-container').html(ml);
 	$('.view-stock-btn').off().on("click", function(){
 		itemBarcode = $(this).data("barcode");
-		regControl.api_call(	{action:"retreive_stock",barcode:itemBarcode},
+		regControl.api_call(	{action:"retrieve_stock",barcode:itemBarcode},
 								regControl._ret_stock_cb,
 								null);
 		$('#view-stock-popup').removeClass("hidden");
 	});	
 	$('.edit-product-btn').off().on("click", function(){
 		itemBarcode = $(this).data("barcode");
-		regControl.api_call(	{action:"retreive_product_info",barcode:itemBarcode},
+		regControl.api_call(	{action:"retrieve_product_info",barcode:itemBarcode},
 								regControl._edit_prod_cb,
 								null);
 	});	
@@ -368,7 +376,7 @@ regControl.drawStoreList = function (storeArray) {
 	$('#content-container').html(ml);
 	$('.edit-store-btn').off().on("click", function(){
 		storeID = $(this).data("store-id");
-		regControl.api_call(	{action:"retreive_store_info",store_id:storeID},
+		regControl.api_call(	{action:"retrieve_store_info",store_id:storeID},
 								regControl._edit_store_cb,
 								null);
 	});	
@@ -609,3 +617,35 @@ regControl._ret_shipped_list_cb = function(data){
 		alert("operation fail");
 	}
 };
+
+regControl._retrieve_pricing_list_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		var i=0;
+		var ml='';
+		ml+=	'<table class = "table" id = "shipped-list">';
+		ml+=	'	<tr>';
+		ml+=	'		<th>Barcode</th>';
+		ml+=	'		<th>Margin Multiplier</th>';
+		ml+=	'		<th>Q*</th>';
+		ml+=	'	</tr>';
+		for (i = 0; i< data.result.length ; i++) {
+			ml+='<tr>';
+			for (var propt in data.result[i]) {
+				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
+			}
+			ml+="</tr>";
+		}
+		ml+=	'</table>';
+		//hack to tryout the pricing system
+		ml+=	'<div class = "btn btn-primary" id = "update-pricing">Update Price</div>';
+		$('#content-container').html(ml);
+		
+		$('#update-pricing').off().on('click', function () {
+			regControl.api_call(	{action:"update_pricing"},
+									regControl._retrieve_pricing_list_cb,
+									null);
+		});
+	}else{
+		alert("operation fail");
+	}
+}

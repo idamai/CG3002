@@ -1,0 +1,1 @@
+//create json files for each server and name them by the id of the shop.

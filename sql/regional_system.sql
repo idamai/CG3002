@@ -28,8 +28,12 @@ CREATE TABLE IF NOT EXISTS `local_stores` (
 
 CREATE TABLE IF NOT EXISTS `price_modifier` (
 	`barcode` 			BIGINT UNSIGNED,
-	`margin_multiplier`	INT NOT NULL,
+	`margin_multiplier`	DECIMAL(10,2) NOT NULL,
 	`tax`	  			INT NOT NULL,
+	`q_star`			INT NOT NULL,
+	`min_multiplier`	DECIMAL(10,2) NOT NULL DEFAULT 1.00,
+	`max_multiplier`	DECIMAL(10,2) NOT NULL DEFAULT 2.00,
+	`update_date`		DATE NOT NULL DEFAULT '1970-01-01',
 	PRIMARY KEY (`barcode`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`)
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;

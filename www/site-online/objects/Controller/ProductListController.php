@@ -43,7 +43,7 @@
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 		}
 		
-		function retreiveProductInfo($barcode) {
+		function retrieveProductInfo($barcode) {
 			$sql = 'SELECT`barcode` , `name`, `category`, `manufacturer`, `cost`, `minimal_stock` FROM `product` WHERE `barcode` = '.$barcode;
 			$res = mysql_query($sql,$this->connection);
 		

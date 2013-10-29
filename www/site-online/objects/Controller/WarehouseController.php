@@ -53,6 +53,21 @@
 			}
 			return $availableBarcode;
 		}
+		
+		function retrieveTotalProductStock() {
+			$sql = 'SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` GROUP BY `stock`';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$productStocks = array();
+			for ($j = 0 ; $j < $rows ; $j++){
+				$productStocks[$j] = array(
+												"barcode" => mysql_result($res,$j,'barcode'),
+												"stock" => mysql_result($res,$j,'stock')
+											);		
+			}
+			return $productStocks;
+		}
 	}
 		
 ?>

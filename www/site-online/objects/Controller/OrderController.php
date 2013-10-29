@@ -7,7 +7,95 @@
 		
 		// function to load JSON file
 		function loadOrder() {
+			
 		}
+		function encrypt($sData, $sKey='54h6vhcg4c4gl'){ 
+			$sResult = ''; 
+			for($i=0;$i<strlen($sData);$i++){ 
+				$sChar    = substr($sData, $i, 1); 
+				$sKeyChar = substr($sKey, ($i % strlen($sKey)) - 1, 1); 
+				$sChar    = chr(ord($sChar) + ord($sKeyChar)); 
+				$sResult .= $sChar; 
+			} 
+			return encode_base64($sResult); 
+		} 
+
+		//call to decrypt. Use same sKey for encrypt and decrypt
+		function decrypt($sData, $sKey='54h6vhcg4c4gl'){ 
+			$sResult = ''; 
+			$sData   = decode_base64($sData); 
+			for($i=0;$i<strlen($sData);$i++){ 
+				$sChar    = substr($sData, $i, 1); 
+				$sKeyChar = substr($sKey, ($i % strlen($sKey)) - 1, 1); 
+				$sChar    = chr(ord($sChar) - ord($sKeyChar)); 
+				$sResult .= $sChar; 
+			} 
+			return $sResult; 
+		} 
+
+
+		function encode_base64($sData){ 
+			$sBase64 = base64_encode($sData); 
+			return strtr($sBase64, '+/', '-_'); 
+		} 
+
+		function decode_base64($sData){ 
+			$sBase64 = strtr($sData, '-_', '+/'); 
+			return base64_decode($sBase64); 
+		} 
+
+
+		function processShipment($processedOrder,$date)
+		{
+			$posts = array();
+			$response = array();
+			$date = mysql_real_escape_string($date);
+			
+			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_order` WHERE date = "'.$date.'" AND `processed` = 1';\
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$shipment =  array();
+			for ($j = 0 ; $j < $rows ; $j++)
+			{
+				$store_id = mysql_result($res,$j,'store_id');
+				$barcode = mysql_result($res,$j,'barcode');
+				$quantity = mysql_result($res,$j,'quantity');
+				if ((!($shipment[$store_id]==null))&&(count($shipment[$store_id]==null) > 0){
+					$shipment[$store_id][$barcode] = $quantity;
+				} else {
+					$shipment[$store_id] = array();
+					$shipment[$store_id][$barcode] = $quantity;
+				}
+			}
+			//retreive and send updated product list 
+			$sql = 'SELECT p.`barcode`, p.`name`, p.`category`, p.`manufacturer`, (p.`cost` * pm.`margin_multiplier`) AS `costprice`, `deleted` FROM `product` p INNER JOIN `price_modifier` pm ON pm.`barcode` = p.`barcode`';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$productsList = array();
+			for ($j = 0 ; $j < $rows ; $j++){
+				$productList[$j] = array(	
+											"barcode" => mysql_result($res,$j,'barcode'),
+											"name" => mysql_result($res,$j,'name'),
+											"category" => mysql_result($res,$j,'category'),
+											"manufacturer" => mysql_result($res,$j,'manufacturer'),
+											"costprice" => mysql_result($res,$j,'costprice'),
+											"deleted" => mysql_result($res,$j,'deleted')
+											);
+			}
+			foreach ($shipment as $store => $barcodeShipped)
+				$filename = 'S'.$store.'.json';
+				$response['shipment_list'] = $barcodeShipped;
+				$response['product_list'] = $productList;
+				$fp = fopen($filename, 'w');
+				fwrite($fp, json_encode($response));
+				fclose($fp);
+			}	
+			
+			//name file by shop id from settings file
+		}
+
 		
 		function processBarcodeOrder( $barcode, $quantity){
 			$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE `barcode` = ".$barcode." AND STOCK > 0 ORDER BY `batchdate`";
@@ -152,6 +240,7 @@
 					
 					$res = mysql_query($sql,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());
+					$this->processShipment($canBeProcessed,$date);
 			}
 		}
 

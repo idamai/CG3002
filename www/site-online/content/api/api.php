@@ -39,7 +39,7 @@ $retArr["captured"] = $p;
 
 try{
 	switch ($p["action"]){
-	case "retreive_product":
+	case "retrieve_product":
 		require_once("../../objects/Controller/ProductListController.php");
 		$plc = new ProductListController($conn);
 		$retArr["result"] = $plc->retrieveProductList();
@@ -58,11 +58,11 @@ try{
 		$retArr["result"] = $plc->retrieveProductList();
 		$retArr["status"] = $OK;
 		break;
-	case "retreive_product_info":
+	case "retrieve_product_info":
 		require_once("../../objects/Controller/ProductListController.php");
 		$barcode = $p["barcode"];
 		$plc = new ProductListController($conn);
-		$retArr["result"] = $plc->retreiveProductInfo($barcode);
+		$retArr["result"] = $plc->retrieveProductInfo($barcode);
 		$retArr["status"] = $OK;
 		break;
 	case "edit_product":
@@ -87,7 +87,7 @@ try{
 		$retArr["result"] = $plc->retrieveProductList($barcode);
 		$retArr["status"] = $OK;
 		break;
-	case "retreive_stock":
+	case "retrieve_stock":
 		require_once("../../objects/Controller/WarehouseController.php");
 		$wc = new WarehouseController($conn);
 		
@@ -115,13 +115,13 @@ try{
 		$retArr["status"] = $OK;
 		//-----not finished----
 		break;
-	case "retreive_order_list":
+	case "retrieve_order_list":
 		require_once("../../objects/Controller/OrderController.php");
 		$oc = new OrderController($conn);
 		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
 		$retArr["status"] = $OK;
 		break;
-	case "retreive_shipped_list":
+	case "retrieve_shipped_list":
 		$sql = 'SELECT * FROM `product_shipped` ORDER BY `date` DESC';
 		$res = mysql_query($sql,$conn);
 		if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -206,6 +206,11 @@ try{
 		//process the sufficient stocks
 		$oc->processOrder($processableList["canBeProcessed"],$date);
 		
+		
+		require_once("../../objects/Controller/PricingController.php");		
+		$pc  = new PricingController($conn);
+		
+		
 		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
@@ -233,6 +238,12 @@ try{
 		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
 		//leave the not processed barcode
 		
+		require_once("../../objects/Controller/PricingController.php");		
+		$pc  = new PricingController($conn);
+		
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
+		
 		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
@@ -256,20 +267,22 @@ try{
 		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);		
 		//process the sufficient stocks
 		$oc->processOrder($processableList["canBeProcessed"],null);
-		
+		require_once("../../objects/Controller/PricingController.php");		
+		$pc  = new PricingController($conn);
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
 		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
-		
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
 		else
 			$retArr["leftover_order"] = false;
 		$retArr["status"] = $OK;
 		break;
-	case "retreive_store":
+	case "retrieve_store":
 		require_once("../../objects/Controller/StoreListController.php");
 		$slc = new StoreListController($conn);
-		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["result"] = $slc->retrieveStoreList();
 		$retArr["status"] = $OK;
 		break;
 	case "add_store":
@@ -280,14 +293,14 @@ try{
 		require_once("../../objects/Controller/StoreListController.php");
 		$slc = new StoreListController($conn);
 		$slc->addNewStore($store_id, $name, $location, $password);
-		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["result"] = $slc->retrieveStoreList();
 		$retArr["status"] = $OK;
 		break;
-	case "retreive_store_info":
+	case "retrieve_store_info":
 		require_once("../../objects/Controller/StoreListController.php");
 		$slc = new StoreListController($conn);
 		$store_id = $p["store_id"];
-		$retArr["result"] = $slc->retreiveStoreInfo($store_id);
+		$retArr["result"] = $slc->retrieveStoreInfo($store_id);
 		$retArr["status"] = $OK;
 		break;
 	case "edit_store":
@@ -299,7 +312,7 @@ try{
 		$slc = new StoreListController($conn);
 		$store_id = $p["store_id"];
 		$slc->editStoreInformation($store_id, $name, $location, $password);
-		$retArr["result"] = $slc->retreiveStoreList();
+		$retArr["result"] = $slc->retrieveStoreList();
 		$retArr["status"] = $OK;
 		break;
 	case "delete_store":
@@ -308,8 +321,29 @@ try{
 		$store_id = $p["store_id"];
 		$slc->deleteStore($store_id);
 		$retArr["store_id"] = $store_id;
-		$retArr["result"] =  $slc->retreiveStoreList();
+		$retArr["result"] =  $slc->retrieveStoreList();
 		$retArr["status"] = $OK;
+		break;
+	case "retrieve_pricing_list":
+		require_once("../../objects/Controller/PricingController.php");
+		$pc  = new PricingController($conn);
+		$retArr["result"] = $pc->retrievePricingList();
+		$retArr["status"] = $OK;
+		break;
+	case "update_pricing":
+		require_once("../../objects/Controller/PricingController.php");		
+		require_once("../../objects/Controller/WarehouseController.php");
+		$wc = new WarehouseController($conn);
+		$pc  = new PricingController($conn);
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
+		$retArr["result"] = $pc->retrievePricingList();		
+		$retArr["status"] = $OK;
+		break;
+	case "read_order":
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		
 		break;
 	}
 }catch(Exception $e){

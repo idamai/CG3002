@@ -5,7 +5,7 @@
 			$this->connection = $conn;
 		}
 		
-		function retreiveStoreList() {
+		function retrieveStoreList() {
 			$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0";
 			$res = mysql_query($sql,$this->connection);
 			
@@ -34,7 +34,7 @@
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 		}
 		
-		function retreiveStoreInfo($store_id) {
+		function retrieveStoreInfo($store_id) {
 			$sql = 'SELECT `id` , `name`, `location` FROM `local_stores` WHERE `id` = '.$store_id;
 			$res = mysql_query($sql,$this->connection);
 		
