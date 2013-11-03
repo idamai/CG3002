@@ -49,6 +49,14 @@ $(document).ready(function(){
 		regControl.showAddProductButton();
 		regControl.hideAddStoreButton();
 	});
+	$("#restock-all-product-btn").off().on("click", function(){
+		regControl.hideOrderButtons();
+		regControl.api_call(	{action:"restock_all_product"},
+								regControl._ret_prod_cb,
+								null);
+		regControl.showAddProductButton();
+		regControl.hideAddStoreButton();
+	});
 	$("#store-btn").off().on("click", function(){
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retrieve_store"},
@@ -85,6 +93,14 @@ $(document).ready(function(){
 		if (!$("#view-stock-popup").hasClass("hidden"))
 			$("#view-stock-popup").addClass("hidden");
 			$('#stock-list-container').html("");
+	});
+	$("#import-all-btn").off().on("click", function(){
+		regControl.showOrderButtons();
+		regControl.api_call(	{action:"import_order_list"},
+								regControl._ret_order_list_cb,
+								null);
+		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton();
 	});
 	$("#process-all-btn").off().on("click", function(){
 		regControl.api_call(	{action:"process_order_unprocessed"},
@@ -313,18 +329,18 @@ regControl.drawProductList = function (prodArray){
 	ml+= '				<th>Category</th>';
 	ml+= '				<th>Manufacturer</th>';
 	ml+= '				<th>Cost</th>';
-	ml+= '				<th>Stock</th>';
-	ml+= '				<th>Edit</th>';
-	ml+= '				<th>Delete</th>';
+	ml+= '				<th style="width:150px">Properties</th>';
+	//ml+= '				<th>Edit</th>';
+	//ml+= '				<th>Delete</th>';
 	ml+= '			</tr>';
 	for (i = 0; i< prodArray.length ; i++) {
 		ml+='<tr>';
 		for (var propt in prodArray[i]) {
 			ml+='<td class ="'+propt+'">'+prodArray[i][propt]+'</td>';
 		}
-		ml+=	'<td class = "view-stock-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Add/View Stock</td>';
-		ml+=	'<td class = "edit-product-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Edit Product</td>';
-		ml+=	'<td class = "delete-product-btn btn btn-inverse" data-barcode='+prodArray[i].barcode+' >Delete Product</td>';
+		ml+=	'<td class = "view-stock-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Stock</td>';
+		ml+=	'<td class = "edit-product-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Edit</td>';
+		ml+=	'<td class = "delete-product-btn btn btn-small  btn-inverse" data-barcode='+prodArray[i].barcode+' >Delete</td>';
 		ml+=	'</tr>';
 	}
 	ml+='</table>';
@@ -360,16 +376,16 @@ regControl.drawStoreList = function (storeArray) {
 	ml+=	'		<th>Store ID</th>';
 	ml+=	'		<th>Store Name</th>';
 	ml+=	'		<th>Location</th>';		
-	ml+= 	'		<th>Edit</th>';
-	ml+= 	'		<th>Delete</th>';
+	ml+= 	'		<th>Properties</th>';
+	//ml+= 	'		<th>Delete</th>';
 	ml+=	'	</tr>';
 	for (i = 0; i< storeArray.length ; i++) {
 		ml+='<tr>';
 		for (var propt in storeArray[i]) {
 			ml+='<td class ="'+propt+'">'+storeArray[i][propt]+'</td>';
 		}
-		ml+=	'<td class = "edit-store-btn btn btn-inverse" data-store-id='+storeArray[i].store_id+' >Edit Store</td>';
-		ml+=	'<td class = "delete-store-btn btn btn-inverse" data-store-id='+storeArray[i].store_id+' >Delete Store</td>';
+		ml+=	'<td class = "edit-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Edit Store</td>';
+		ml+=	'<td class = "delete-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Delete Store</td>';
 		ml+='</tr>';
 	}
 	ml+=	'</table>';

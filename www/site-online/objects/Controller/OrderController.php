@@ -17,13 +17,13 @@
 				$sChar    = chr(ord($sChar) + ord($sKeyChar)); 
 				$sResult .= $sChar; 
 			} 
-			return encode_base64($sResult); 
+			return $this->encode_base64($sResult); 
 		} 
 
 		//call to decrypt. Use same sKey for encrypt and decrypt
 		function decrypt($sData, $sKey='54h6vhcg4c4gl'){ 
 			$sResult = ''; 
-			$sData   = decode_base64($sData); 
+			$sData   = $this->decode_base64($sData); 
 			for($i=0;$i<strlen($sData);$i++){ 
 				$sChar    = substr($sData, $i, 1); 
 				$sKeyChar = substr($sKey, ($i % strlen($sKey)) - 1, 1); 
@@ -45,13 +45,45 @@
 		} 
 
 
+		function readJson()
+		{
+			$query = mysql_query("SELECT id,deleted FROM local_stores",$this->connection);
+			date_default_timezone_set("Asia/Singapore");
+			$date = date('Y-m-d');
+			while($row = mysql_fetch_array($query))
+			{
+				if ($row['deleted'] == 0) 
+				{
+					$shop_id = $row['id'];
+					$file = 'receive/'.$row['id'].'.json';
+					$json = json_decode(file_get_contents($file), true);
+					foreach($json['products'] as $data)
+					{
+						$barcode = $data['barcode'];
+						$quantity = $this->decrypt($data['quantity']);
+						$sales = $this->decrypt($data['sales']);
+						$writeoff = $this->decrypt($data['write-off']);
+						if($quantity>0) {
+							mysql_query("INSERT INTO product_order(barcode, date, store_id, quantity, processed) VALUES ('$barcode', '$date', '$shop_id', '$quantity', b'0')",$this->connection);
+						}
+						mysql_query("INSERT INTO product_sales(barcode, date, store_id, sales, writeoff) VALUES ('$barcode', '$date', '$shop_id', '$sales', '$writeoff')",$this->connection);
+					}
+				}
+			}
+		}
+
+
 		function processShipment($processedOrder,$date)
 		{
 			$posts = array();
 			$response = array();
 			$date = mysql_real_escape_string($date);
 			
-			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_order` WHERE date = "'.$date.'" AND `processed` = 1';\
+			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_order` WHERE ';
+			if (($date != null)&&($date!= "")){
+				$sql.='date = "'.$date.'" AND ';
+			}
+			$sql.='`processed` = 1';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -61,12 +93,19 @@
 				$store_id = mysql_result($res,$j,'store_id');
 				$barcode = mysql_result($res,$j,'barcode');
 				$quantity = mysql_result($res,$j,'quantity');
-				if ((!($shipment[$store_id]==null))&&(count($shipment[$store_id]==null) > 0){
-					$shipment[$store_id][$barcode] = $quantity;
-				} else {
+				/*if ((!($shipment[$store_id]==null))&&(count($shipment[$store_id]==null) > 0)){
+					//$shipment[$store_id][$barcode] = $quantity;
+				*/
+					$shipment[$store_id][] = array( 
+												'barcode' => $barcode,
+												'quantity' => $quantity
+												);
+				/*} else {
 					$shipment[$store_id] = array();
-					$shipment[$store_id][$barcode] = $quantity;
-				}
+					//$shipment[$store_id][$barcode] = $quantity;
+					$shipment[$store_id]['barcode'] = $barcode;
+					$shipment[$store_id]['quantity'] = $quantity;
+				}*/
 			}
 			//retreive and send updated product list 
 			$sql = 'SELECT p.`barcode`, p.`name`, p.`category`, p.`manufacturer`, (p.`cost` * pm.`margin_multiplier`) AS `costprice`, `deleted` FROM `product` p INNER JOIN `price_modifier` pm ON pm.`barcode` = p.`barcode`';
@@ -84,8 +123,16 @@
 											"deleted" => mysql_result($res,$j,'deleted')
 											);
 			}
-			foreach ($shipment as $store => $barcodeShipped)
-				$filename = 'S'.$store.'.json';
+			$sql = 'SELECT `id`, `password` FROM `local_stores` WHERE `deleted` = 0';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$passwords = array();
+			for ($j = 0 ; $j < $rows ; $j++){
+				$passwords[mysql_result($res,$j,'id')] = mysql_result($res,$j,'password');
+			}
+			foreach ($shipment as $store => $barcodeShipped){
+				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
 				$response['shipment_list'] = $barcodeShipped;
 				$response['product_list'] = $productList;
 				$fp = fopen($filename, 'w');

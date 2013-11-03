@@ -75,7 +75,8 @@
 			$currentGradient = ($q_star - $current_stock)/$numOfWeeksPassed/1.0;
 			$recommendedGradient = ($q_star - $minimal_stock)/4.0;
 			$delta = ($recommendedGradient-$currentGradient)/$recommendedGradient;
-			$newMultiplier = $margin_multiplier +$delta;
+			//changed to negative delta
+			$newMultiplier = $margin_multiplier - $delta;
 			if ($newMultiplier > $max_multiplier)
 				return $max_multiplier;
 			else if ($newMultiplier < $min_multiplier)

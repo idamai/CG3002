@@ -30,6 +30,34 @@
 			$sql = "UPDATE `warehouse` SET `stock` = ".$quantity." WHERE `batchdate` = '".$date."' AND `barcode` = ".$barcode;
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		}
+		
+		function addStockForAll() {
+			$sql = 'SELECT `barcode`, `q_star` FROM `price_modifier`';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$productStock = array();
+			for ($j = 0 ; $j < $rows ; $j++){
+				$productStock[$j] = array(
+												"barcode" => mysql_result($res,$j,'barcode'),
+												"fullstock" => mysql_result($res,$j,'q_star')
+											);		
+			}
+			foreach($productStock as $data) {
+				$bar = $data['barcode'];
+				$full = $data['fullstock'];
+				$full = (7 * $full)/16;
+				$sql = "SELECT sum(`stock`) as `holding` FROM `warehouse` WHERE `barcode` = ".$bar ;
+				$res = mysql_query($sql,$this->connection);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				while($rows = mysql_fetch_array($res)) {
+					if(($data['fullstock'] - $rows['holding']) > 0) {
+						$sql2 = "INSERT INTO `warehouse` (`barcode`, `batchdate`, `stock` )VALUES (".$data['barcode'].",CURDATE(),".($full-$rows[0]).")" ;
+						mysql_query($sql2,$this->connection);
+					}
+				}
+			}
 		}		
 		
 		function retrieveStockForOrder($toBeOrdered) {

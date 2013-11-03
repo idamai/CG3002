@@ -45,6 +45,15 @@ try{
 		$retArr["result"] = $plc->retrieveProductList();
 		$retArr["status"] = $OK;
 		break;
+	case "restock_all_product":
+		require_once("../../objects/Controller/ProductListController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		$plc = new ProductListController($conn);
+		$wc = new WarehouseController($conn);
+		$wc->addStockForAll();
+		 $retArr["result"] = $plc->retrieveProductList();
+		$retArr["status"] = $OK;
+		break;
 	case "add_new_product":
 		require_once("../../objects/Controller/ProductListController.php");
 		$barcode = $p["barcode"];
@@ -118,6 +127,13 @@ try{
 	case "retrieve_order_list":
 		require_once("../../objects/Controller/OrderController.php");
 		$oc = new OrderController($conn);
+		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
+		$retArr["status"] = $OK;
+		break;
+    case "import_order_list":
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		$oc->readJson();
 		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
 		$retArr["status"] = $OK;
 		break;
@@ -235,7 +251,7 @@ try{
 		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);
 		
 		//process the sufficient stocks
-		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
+		//$oc->processOrder($processableList["canBeProcessed"],null,$conn);
 		//leave the not processed barcode
 		
 		require_once("../../objects/Controller/PricingController.php");		
@@ -243,6 +259,8 @@ try{
 		
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
+		//BUGFIX : call after update pricing
+		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
 		
 		$retArr["result"] = $oc->getAllUnprocessedOrder();
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];

@@ -6,8 +6,8 @@ INSERT INTO `warehouse` (`barcode`,`stock`) VALUES
 (23418003,2960);
 
 INSERT INTO `local_stores` VALUES
-(1,"Bedok 1101", "Bedok Street 1920", SHA1("test1"),0),
-(2,"Changi Expo", "Changi Lane 5", SHA1("test2"),0);
+(1,"Bedok 1101", "Bedok Street 1920", MD5("helloworld"),0),
+(2,"Changi Expo", "Changi Lane 5", MD5("helloworld"),0);
 
 INSERT INTO `admin` VALUES ("admin",SHA1("iamsexy#1"));
 

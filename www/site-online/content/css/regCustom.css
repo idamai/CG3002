@@ -1,3 +1,17 @@
+.container {
+	width:90%;
+}
+
+.hero-unit {
+	height: 10px;
+	text-align: center;
+	padding-top: 10px;
+	background-color: #3a96d8;
+	color: white;
+	border-radius: 0px 0px 3px 3px;
+}
+
+
 .right {
 	float: right;
 }
@@ -11,17 +25,17 @@
 }
 
 .menu {
-	width: 250px;
+	width: 20%;
 	padding: 15px;
-	background-color:darkgrey;
+	background-color:#f6f6f6;
 	border-radius: 5px;
 }
 .content{
-	height:475px;
-	width : 625px;
+	height:455px;
+	width : 70%;
 	overflow-x:auto;
 	overflow-y:auto;
-	background-color:lightgrey;
+	background-color:#f8f8f8;
 	border-radius: 5px;
 	padding: 15px;
 }
@@ -93,4 +107,12 @@ margin-top: 10px;
 	margin-top:-250px;
 	width:auto;
 	height:auto;
+}
+
+.sales-head {
+	font-weight: bold;
+}
+
+#sales-center {
+	text-align: center;
 }

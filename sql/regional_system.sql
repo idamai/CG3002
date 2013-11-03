@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `local_stores` (
 	`id` INT UNSIGNED,
 	`name` VARCHAR(255),
 	`location` CHAR(40),
-	`password` CHAR(40),
+	`password` CHAR(32),
 	`deleted` BIT NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 )  ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
