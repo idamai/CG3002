@@ -10,7 +10,7 @@ regControl.data_chunk_size = 10;
 regControl.mlArray = new Array();
 regControl.mlArraySearch = new Array();
 regControl.mlArrayPaged = new Array();
-regControl.currentActive
+
 
 //for future mobile checker
 regControl.isMobile = function() {
@@ -24,11 +24,14 @@ regControl.constants = {   OK : "ok",
 						   FAIL : "fail",
 						   NETWORK_FAIL : "network",
 						   LOGIN : "login",
+						   ACTIVE_NONE : "none-active",
 						   ACTIVE_PRODUCT : "product-list",
 						   ACTIVE_STORE : "store-list",
 						   ACTIVE_ORDER : "order-list",
 						   ACTIVE_SHIPPED : "shipped-list",
-						   ACTIVE_PRICING : "price_list"};
+						   ACTIVE_PRICING : "price-list"};
+						   
+regControl.currentActive;						   
 //standardized ajax api call						   
 regControl.api_call = function (senddata, callback, ctx){
 	$.post(regControl.api_url,
@@ -50,6 +53,7 @@ $(document).ready(function(){
 	regControl.init_search_bar();
 	regControl.initAddProductPopup();
 	regControl.initAddStorePopup();
+	regControl.currentActive = regControl.constants.ACTIVE_NONE;
 	
 	$("#product-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
@@ -59,6 +63,7 @@ $(document).ready(function(){
 								null);
 		regControl.showAddProductButton();
 		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_PRODUCT;
 		
 	});
 	$("#restock-all-product-btn").off().on("click", function(){
@@ -78,6 +83,7 @@ $(document).ready(function(){
 								null);
 		regControl.hideAddProductButton();
 		regControl.showAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_STORE;
 	});
 	$("#order-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
@@ -87,6 +93,7 @@ $(document).ready(function(){
 								null);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_ORDER;
 	});
 	$("#shipment-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
@@ -96,6 +103,7 @@ $(document).ready(function(){
 								null);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
 	});
 	$("#pricing-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
@@ -105,6 +113,7 @@ $(document).ready(function(){
 								null);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
 	});
 	$("#close-stock-popup").off().on("click", function(){
 		if (!$("#view-stock-popup").hasClass("hidden"))
@@ -293,10 +302,35 @@ regControl.initDiscardStock = function(barcode) {
 regControl.init_search_bar = function(){
 	$("#search-bar").keyup(function(e) {
 		  if(e.which == 13) {
-		  var userInput = $(this).val();
-			$("#content-container table tbody tr").map(function(index, value) {
-				$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
-			});
+			  var userInput = $(this).val();
+				/*$("#content-container table tbody tr").map(function(index, value) {
+					$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
+				});*/
+			  var callback_fn;
+			  switch(regControl.currentActive) {
+				case regControl.constants.ACTIVE_NONE:
+					break;
+				case regControl.constants.ACTIVE_PRODUCT:
+					callback_fn = regControl._ret_prod_cb;
+					break;
+				case regControl.constants.ACTIVE_STORE:
+					callback_fn = regControl._ret_store_cb;
+					break;			
+				case regControl.constants.ACTIVE_ORDER:
+					callback_fn = regControl._ret_order_list_cb;
+					break;
+				case regControl.constants.ACTIVE_SHIPPED:
+					callback_fn = regControl._ret_order_list_cb;
+					break;			
+				case regControl.constants.ACTIVE_PRICING:
+					callback_fn = regControl._retrieve_pricing_list_cb;
+					break;
+			  }
+			  
+			  if (regControl.currentActive != regControl.constants.ACTIVE_NONE)				 
+				regControl.api_call(	{action:"search_data_base",key:userInput,mode:regControl.currentActive},
+												callback_fn,
+												null);
 		}
 	});
 };
@@ -354,6 +388,7 @@ regControl.mlArrayPager = function () {
 }
 //---------------------paged drawing functions---------------------------
 regControl.buildProductPagedArray = function(prodArray) {
+	regControl.mlArray =new Array();
 	for (i = 0; i< prodArray.length ; i++) {
 		regControl.mlArray[i] = '';
 		regControl.mlArray[i]+='<tr>';

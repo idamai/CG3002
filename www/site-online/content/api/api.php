@@ -8,6 +8,12 @@ $FAIL = "fail";
 $ERROR = "error";
 //preparation for further implementation
 $LOGIN = "login";
+$ACTIVE_NONE = "none-active";
+$ACTIVE_PRODUCT = "product-list";
+$ACTIVE_STORE = "store-list";
+$ACTIVE_ORDER = "order-list";
+$ACTIVE_SHIPPED = "shipped-list";
+$ACTIVE_PRICING = "price-list";
 
 $conn = dbconnect($dbconn);
 $webInput = $_GET["data"];
@@ -363,6 +369,104 @@ try{
 		$oc = new OrderController($conn);
 		
 		break;
+	case "search_data_base":
+		$key = $p["key"];
+		$key = mysql_real_escape_string($key);
+		$mode = $p["mode"];
+		/*
+			Supported modes:
+						   ACTIVE_NONE : "none-active",
+						   ACTIVE_PRODUCT : "product-list",
+						   ACTIVE_STORE : "store-list",
+						   ACTIVE_ORDER : "order-list",
+						   ACTIVE_SHIPPED : "shipped-list",
+						   ACTIVE_PRICING : "price-list"
+		*/
+		switch($mode){
+			case $ACTIVE_PRODUCT:
+				$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product` WHERE `deleted` = 0 AND ( `barcode` LIKE '%$key%' OR `name` LIKE '%$key%' OR `category` LIKE '%$key%' OR `manufacturer` LIKE '%$key%' OR `cost` LIKE '%$key%')";
+				$res = mysql_query($sql,$conn);
+				
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$result =  array();
+				for ($j = 0 ; $j < $rows ; $j++)
+				{
+					$result[$j] = array(
+													"barcode" => mysql_result($res,$j,'barcode'),
+													"name" => mysql_result($res,$j,'name'),
+													"category" => mysql_result($res,$j,'category'),
+													"manufacturer" => mysql_result($res,$j,'manufacturer'),
+													"cost" => mysql_result($res,$j,'cost')
+												);
+				}
+				break;
+			case $ACTIVE_STORE:
+				$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0  AND ( `id` LIKE '%$key%' OR `name` LIKE '%$key%' OR `location` LIKE '%$key%')";
+				$res = mysql_query($sql,$conn);
+				
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$result =  array();
+				for ($j = 0 ; $j < $rows ; $j++)
+				{
+					$result[$j] = array(
+													"store_id" => mysql_result($res,$j,'id'),
+													"store_name" => mysql_result($res,$j,'name'),
+													"store_loc" => mysql_result($res,$j,'location')
+												);		
+				}
+				break;
+			case $ACTIVE_ORDER:
+				$sql = "SELECT * FROM `product_order` WHERE `processed` = 0 AND ( `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%')";
+				$res = mysql_query($sql,$conn);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$result =  array();
+				for ($j = 0 ; $j < $rows ; $j++){
+					$result[$j] = array(
+													"barcode" => mysql_result($res,$j,'barcode'),
+													"date" => mysql_result($res,$j,'date'),
+													"store_id" => mysql_result($res,$j,'store_id'),
+													"quantity" => mysql_result($res,$j,'quantity')
+												);		
+				}
+				break;
+			case $ACTIVE_SHIPPED:
+				$sql = "SELECT * FROM `product_shipped` WHERE  `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%'";
+				$res = mysql_query($sql,$conn);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$result =  array();
+				for ($j = 0 ; $j < $rows ; $j++){
+					$result[$j] = array(
+													"barcode" => mysql_result($res,$j,'barcode'),
+													"date" => mysql_result($res,$j,'date'),
+													"store_id" => mysql_result($res,$j,'store_id'),
+													"quantity" => mysql_result($res,$j,'quantity')
+												);		
+				}
+				break;
+			case $ACTIVE_PRICING:
+				$sql = "SELECT `barcode`, `margin_multiplier`, `q_star` FROM `price_modifier` WHERE  `barcode` LIKE '%$key%' OR `margin_multiplier` LIKE '%$key%' OR `);` LIKE '%$key%'";
+				$res = mysql_query($sql, $conn);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$result =  array();
+				for ($j = 0 ; $j < $rows ; $j++)
+				{
+					$result[$j] = array(
+													"barcode" => mysql_result($res,$j,'barcode'),
+													"margin_multiplier" => mysql_result($res,$j,'margin_multiplier'),
+													"q_star" => mysql_result($res,$j,'q_star')
+												);		
+				}
+				break;
+			default:
+				break;
+		}
+		$retArr["result"] = $result;
+		$retArr["status"] = $OK;
 	}
 }catch(Exception $e){
 	switch ($e->getMessage()){
