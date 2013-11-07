@@ -116,3 +116,74 @@ margin-top: 10px;
 #sales-center {
 	text-align: center;
 }
+
+#main-page-controller{
+	margin-left:auto;
+	margin-right:auto;
+	width:50%;
+	text-align:center;
+	
+}
+
+
+.page-controller {
+	padding: 2px;
+	margin: 2px;
+	text-shadow:2px 2px 10px #000000;
+	color: blue;
+}
+
+.page-controller:hover {
+	cursor:pointer;
+	color: lightblue;
+	text-shadow:2px 2px 10px #FFFFFF;
+}
+
+.next-paging {
+	padding: 2px;
+	margin: 2px;
+	text-shadow:2px 2px 10px #000000;
+	color: blue;
+}
+
+.next-paging:hover {
+	cursor:pointer;
+	color: lightblue;
+	text-shadow:2px 2px 10px #FFFFFF;
+}
+
+.prev-paging {
+	padding: 2px;
+	margin: 2px;
+	text-shadow:2px 2px 10px #000000;
+	color: blue;
+}
+
+.prev-paging:hover {
+	cursor:pointer;
+	color: lightblue;
+	text-shadow:2px 2px 10px #FFFFFF;
+}
+
+#product-list{
+	height:350px;
+	overflow:auto;
+}
+
+#loading-screen{
+	position: fixed;
+	height:100%;
+	width:100%;
+	vertical-align:middle;
+	background-color: lightgrey;
+	z-index:100;
+	opacity:0.5;
+}
+
+#loading-text{
+	top:50%;
+	position:fixed;
+	text-align:center;
+	font-size:24pt;
+	width:100%;
+}

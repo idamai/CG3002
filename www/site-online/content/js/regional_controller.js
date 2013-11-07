@@ -7,6 +7,10 @@ window.regControl = window.regControl || {};
 regControl.api_url = "/api/api.php";
 regControl.api_path = "/api/";
 regControl.data_chunk_size = 10;
+regControl.mlArray = new Array();
+regControl.mlArraySearch = new Array();
+regControl.mlArrayPaged = new Array();
+regControl.currentActive
 
 //for future mobile checker
 regControl.isMobile = function() {
@@ -19,7 +23,12 @@ regControl.isMobile = function() {
 regControl.constants = {   OK : "ok",
 						   FAIL : "fail",
 						   NETWORK_FAIL : "network",
-						   LOGIN : "login" };
+						   LOGIN : "login",
+						   ACTIVE_PRODUCT : "product-list",
+						   ACTIVE_STORE : "store-list",
+						   ACTIVE_ORDER : "order-list",
+						   ACTIVE_SHIPPED : "shipped-list",
+						   ACTIVE_PRICING : "price_list"};
 //standardized ajax api call						   
 regControl.api_call = function (senddata, callback, ctx){
 	$.post(regControl.api_url,
@@ -37,19 +46,23 @@ regControl.api_call = function (senddata, callback, ctx){
 
 $(document).ready(function(){
 	
+	
 	regControl.init_search_bar();
 	regControl.initAddProductPopup();
 	regControl.initAddStorePopup();
 	
 	$("#product-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retrieve_product"},
 								regControl._ret_prod_cb,
 								null);
 		regControl.showAddProductButton();
 		regControl.hideAddStoreButton();
+		
 	});
 	$("#restock-all-product-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"restock_all_product"},
 								regControl._ret_prod_cb,
@@ -58,6 +71,7 @@ $(document).ready(function(){
 		regControl.hideAddStoreButton();
 	});
 	$("#store-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retrieve_store"},
 								regControl._ret_store_cb,
@@ -66,6 +80,7 @@ $(document).ready(function(){
 		regControl.showAddStoreButton();
 	});
 	$("#order-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.showOrderButtons();
 		regControl.api_call(	{action:"retrieve_order_list"},
 								regControl._ret_order_list_cb,
@@ -74,6 +89,7 @@ $(document).ready(function(){
 		regControl.hideAddStoreButton();
 	});
 	$("#shipment-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retrieve_shipped_list"},
 								regControl._ret_shipped_list_cb,
@@ -82,6 +98,7 @@ $(document).ready(function(){
 		regControl.hideAddStoreButton();
 	});
 	$("#pricing-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.api_call(	{action:"retrieve_pricing_list"},
 								regControl._retrieve_pricing_list_cb,
@@ -274,11 +291,13 @@ regControl.initDiscardStock = function(barcode) {
 }
 
 regControl.init_search_bar = function(){
-	$("#search-bar").keyup(function() {
-		var userInput = $(this).val();
-		$("#content-container table tbody tr").map(function(index, value) {
-			$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
-		});
+	$("#search-bar").keyup(function(e) {
+		  if(e.which == 13) {
+		  var userInput = $(this).val();
+			$("#content-container table tbody tr").map(function(index, value) {
+				$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
+			});
+		}
 	});
 };
 
@@ -319,32 +338,199 @@ regControl.initAddStorePopup = function() {
 	});
 }
 
-regControl.drawProductList = function (prodArray){
-	var i=0;
-	var ml='';
-	ml+= '<table class = "table" id = "product-list">'
-	ml+= '			<tr>';
-	ml+= '				<th>Barcode</th>';
-	ml+= '				<th>Name</th>';
-	ml+= '				<th>Category</th>';
-	ml+= '				<th>Manufacturer</th>';
-	ml+= '				<th>Cost</th>';
-	ml+= '				<th style="width:150px">Properties</th>';
-	//ml+= '				<th>Edit</th>';
-	//ml+= '				<th>Delete</th>';
-	ml+= '			</tr>';
-	for (i = 0; i< prodArray.length ; i++) {
-		ml+='<tr>';
-		for (var propt in prodArray[i]) {
-			ml+='<td class ="'+propt+'">'+prodArray[i][propt]+'</td>';
+regControl.mlArrayPager = function () {
+	var limit = 7;
+	var pageCounter = 0;
+	var i =0;
+	regControl.mlArrayPaged = new Array();
+	for (i = 0; i < regControl.mlArray.length; i++){
+		if ( i%limit == 0) {
+			if (i > 0)
+				pageCounter++;
+			regControl.mlArrayPaged[pageCounter] = new Array();			
 		}
-		ml+=	'<td class = "view-stock-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Stock</td>';
-		ml+=	'<td class = "edit-product-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Edit</td>';
-		ml+=	'<td class = "delete-product-btn btn btn-small  btn-inverse" data-barcode='+prodArray[i].barcode+' >Delete</td>';
-		ml+=	'</tr>';
+		regControl.mlArrayPaged[pageCounter][i%limit] = regControl.mlArray[i];		
 	}
+}
+//---------------------paged drawing functions---------------------------
+regControl.buildProductPagedArray = function(prodArray) {
+	for (i = 0; i< prodArray.length ; i++) {
+		regControl.mlArray[i] = '';
+		regControl.mlArray[i]+='<tr>';
+		for (var propt in prodArray[i]) {
+			regControl.mlArray[i]+='<td class ="'+propt+'">'+prodArray[i][propt]+'</td>';
+		}
+		regControl.mlArray[i]+=	'<td class = "view-stock-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Stock</td>';
+		regControl.mlArray[i]+=	'<td class = "edit-product-btn btn btn-small btn-inverse" data-barcode='+prodArray[i].barcode+' >Edit</td>';
+		regControl.mlArray[i]+=	'<td class = "delete-product-btn btn btn-small  btn-inverse" data-barcode='+prodArray[i].barcode+' >Delete</td>';
+		regControl.mlArray[i]+=	'</tr>';
+	}
+	regControl.mlArrayPager();
+}
+regControl.buildStorePagedArray = function(storeArray) {
+	regControl.mlArray =new Array();
+	for (i = 0; i< storeArray.length ; i++) {
+		regControl.mlArray[i] = '';
+		regControl.mlArray[i]+='<tr>';
+		for (var propt in storeArray[i]) {
+			regControl.mlArray[i]+='<td class ="'+propt+'">'+storeArray[i][propt]+'</td>';
+		}
+		regControl.mlArray[i]+=	'<td class = "edit-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Edit Store</td>';
+		regControl.mlArray[i]+=		'<td class = "delete-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Delete Store</td>';
+		regControl.mlArray[i]+=	'</tr>';
+	}
+	regControl.mlArrayPager();
+}
+regControl.buildOrderPagedArray = function(orderArray) {
+	regControl.mlArray =new Array();
+	for (i = 0; i< orderArray.length ; i++) {
+		regControl.mlArray[i] = '';
+		regControl.mlArray[i]+='<tr>';
+		for (var propt in orderArray[i]) {
+			regControl.mlArray[i]+='<td class ="'+propt+'">'+orderArray[i][propt]+'</td>';
+		}
+		regControl.mlArray[i]+=	'</tr>';
+	}
+	regControl.mlArrayPager();
+}
+
+regControl.buildShippedPagedArray = function(shippedArray) {
+	regControl.mlArray =new Array();
+	for (i = 0; i< shippedArray.length ; i++) {
+		regControl.mlArray[i] = '';
+		regControl.mlArray[i]+='<tr>';
+		for (var propt in shippedArray[i]) {
+			regControl.mlArray[i]+='<td class ="'+propt+'">'+shippedArray[i][propt]+'</td>';
+		}
+		regControl.mlArray[i]+=	'</tr>';
+	}
+	regControl.mlArrayPager();
+}
+
+regControl.buildPricingPagedArray = function(pricingArray) {
+	regControl.mlArray =new Array();
+	for (i = 0; i< pricingArray.length ; i++) {
+		regControl.mlArray[i] = '';
+		regControl.mlArray[i]+='<tr>';
+		for (var propt in pricingArray[i]) {
+			regControl.mlArray[i]+='<td class ="'+propt+'">'+pricingArray[i][propt]+'</td>';
+		}
+		regControl.mlArray[i]+=	'</tr>';
+	}
+	regControl.mlArrayPager();
+}
+
+regControl.productListController = function (prodArray) {
+	regControl.buildProductPagedArray(prodArray);
+	var pageCounter = regControl.mlArrayPaged.length;
+	var ml='';
+	ml+= '<table class = "table" id = "product-list">';
 	ml+='</table>';
+	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
+	if (regControl.mlArrayPaged.length>=1)
+		regControl.drawProductList(0);
+	else
+		alert ("You do not have any product data");
+	regControl.pageController(pageCounter,regControl.drawProductList);
+	
+}
+regControl.storeListController = function (storeArray) {
+	regControl.buildStorePagedArray(storeArray);
+	var pageCounter = regControl.mlArrayPaged.length;
+	var ml='';
+	ml+= '<table class = "table" id = "store-list">';
+	ml+='</table>';
+	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	$('#content-container').html(ml);
+	if (regControl.mlArrayPaged.length>=1)
+		regControl.drawStoreList(0);
+	else
+		alert ("You do not have any store data");
+	regControl.pageController(pageCounter,regControl.drawStoreList);
+}
+
+regControl.orderListController = function (orderArray) {
+	regControl.buildOrderPagedArray(orderArray);
+	var pageCounter = regControl.mlArrayPaged.length;
+	var ml='';
+	ml+= '<table class = "table" id = "order-list">';
+	ml+='</table>';
+	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	$('#content-container').html(ml);
+	if (regControl.mlArrayPaged.length>=1)
+		regControl.drawOrderList(0);
+	else
+		alert ("You do not have any order data");
+	regControl.pageController(pageCounter,regControl.drawOrderList);
+}
+regControl.shippedListController = function (shippedArray) {
+	regControl.buildShippedPagedArray(shippedArray);
+	var pageCounter = regControl.mlArrayPaged.length;
+	var ml='';
+	ml+= '<table class = "table" id = "shipped-list">';
+	ml+='</table>';
+	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	$('#content-container').html(ml);
+	if (regControl.mlArrayPaged.length>=1)
+		regControl.drawShippedList(0);
+	else
+		alert ("You do not have any shipment data");
+	regControl.pageController(pageCounter,regControl.drawShippedList);
+}
+
+regControl.pricingListController = function (pricingArray) {
+	regControl.buildPricingPagedArray(pricingArray);
+	var pageCounter = regControl.mlArrayPaged.length;
+	var ml='';
+	ml+= '<table class = "table" id = "pricing-list">';
+	ml+='</table>';
+	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	$('#content-container').html(ml);
+	if (regControl.mlArrayPaged.length>=1)
+		regControl.drawPricingList(0);
+	else
+		alert ("You do not have any pricing data");
+	regControl.pageController(pageCounter,regControl.drawPricingList);
+}
+regControl.pageController = function(pageCounter,drawFunction){
+	var perPageLimit = 10;
+	var i;
+	var ml='';	
+	for (i =0; i< pageCounter;i++) {
+		if (i%perPageLimit == 0){
+			if (i > 0){
+				if (i<pageCounter-1)
+					ml+='<span class = "next-paging">Next</span>';
+				ml+='</div>';
+			}
+			ml+= '<div id="paging-'+(i/perPageLimit)+'" data-cur-paging = '+i/perPageLimit+' class = "page-scroller hidden">';
+			if (i > 0)
+				ml+= '<span class = "prev-paging">Prev</span>';
+		}
+		ml+='<span class = "page-controller" data-page='+i+'>'+(i+1)+'</span>';
+	}
+	ml+='</div>';
+	$("#main-page-controller").html(ml);
+	$("#paging-0").removeClass("hidden");
+	$(".next-paging").off().on("click",function(){
+		var nextPaging = $(this).parent().data("cur-paging")+1;
+		$(this).parent().addClass("hidden");
+		$("#paging-"+nextPaging).removeClass("hidden");
+	});
+	$(".prev-paging").off().on("click",function(){
+		var nextPaging = $(this).parent().data("cur-paging")-1;
+		$(this).parent().addClass("hidden");
+		$("#paging-"+nextPaging).removeClass("hidden");
+	});
+	$(".page-controller").off().on("click",function(){
+		var curPage = $(this).data("page");
+		//regControl.drawProductList(curPage);
+		drawFunction(curPage);
+	});
+}
+
+regControl.initCRUDProdBtn = function() {
 	$('.view-stock-btn').off().on("click", function(){
 		itemBarcode = $(this).data("barcode");
 		regControl.api_call(	{action:"retrieve_stock",barcode:itemBarcode},
@@ -366,30 +552,8 @@ regControl.drawProductList = function (prodArray){
 									regControl._del_prod_cb,
 									null);
 	});	
-	$("#search-product-bar").removeClass("hidden");
 }
-regControl.drawStoreList = function (storeArray) {
-	var i=0;
-	var ml='';
-	ml+=	'<table class = "table" id = "store-list">';
-	ml+=	'	<tr>';
-	ml+=	'		<th>Store ID</th>';
-	ml+=	'		<th>Store Name</th>';
-	ml+=	'		<th>Location</th>';		
-	ml+= 	'		<th>Properties</th>';
-	//ml+= 	'		<th>Delete</th>';
-	ml+=	'	</tr>';
-	for (i = 0; i< storeArray.length ; i++) {
-		ml+='<tr>';
-		for (var propt in storeArray[i]) {
-			ml+='<td class ="'+propt+'">'+storeArray[i][propt]+'</td>';
-		}
-		ml+=	'<td class = "edit-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Edit Store</td>';
-		ml+=	'<td class = "delete-store-btn btn btn-small btn-inverse" data-store-id='+storeArray[i].store_id+' >Delete Store</td>';
-		ml+='</tr>';
-	}
-	ml+=	'</table>';
-	$('#content-container').html(ml);
+regControl.initCRUDStoreBtn = function() {
 	$('.edit-store-btn').off().on("click", function(){
 		storeID = $(this).data("store-id");
 		regControl.api_call(	{action:"retrieve_store_info",store_id:storeID},
@@ -405,11 +569,102 @@ regControl.drawStoreList = function (storeArray) {
 									null);
 	});	
 }
+regControl.drawProductList = function (page){
+	var i=0;
+	var j =0;
+	var ml='';
+	ml+= '			<tr>';
+	ml+= '				<th>Barcode</th>';
+	ml+= '				<th>Name</th>';
+	ml+= '				<th>Category</th>';
+	ml+= '				<th>Manufacturer</th>';
+	ml+= '				<th>Cost</th>';
+	ml+= '				<th style="width:150px">Properties</th>';
+	//ml+= '				<th>Edit</th>';
+	//ml+= '				<th>Delete</th>';
+	ml+= '			</tr>';
+	
+	for (j = 0; j < regControl.mlArrayPaged[page].length; j++)
+		ml+=regControl.mlArrayPaged[page][j];
+	
+	$('#product-list').html(ml);
+	regControl.initCRUDProdBtn();
+}
+
+regControl.drawStoreList = function (page){
+	var i=0;
+	var j =0;
+	var ml='';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Store ID</th>';
+	ml+=	'		<th>Store Name</th>';
+	ml+=	'		<th>Location</th>';		
+	ml+= 	'		<th>Properties</th>';
+	//ml+= 	'		<th>Delete</th>';
+	ml+=	'	</tr>';
+	for (j = 0; j < regControl.mlArrayPaged[page].length; j++)
+		ml+=regControl.mlArrayPaged[page][j];
+	
+	$('#store-list').html(ml);
+	regControl.initCRUDStoreBtn();
+
+}
+
+regControl.drawOrderList = function (page){
+	var i=0;
+	var j =0;
+	var ml='';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Barcode</th>';
+	ml+=	'		<th>Date</th>';
+	ml+=	'		<th>Store ID</th>';
+	ml+=	'		<th>Quantity</th>';
+	ml+=	'	</tr>';
+	for (j = 0; j < regControl.mlArrayPaged[page].length; j++)
+		ml+=regControl.mlArrayPaged[page][j];	
+	$('#order-list').html(ml);
+}
+
+regControl.drawShippedList = function (page){
+	var i=0;
+	var j =0;
+	var ml='';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Barcode</th>';
+	ml+=	'		<th>Date</th>';
+	ml+=	'		<th>Store ID</th>';
+	ml+=	'		<th>Quantity</th>';
+	ml+=	'	</tr>';
+	for (j = 0; j < regControl.mlArrayPaged[page].length; j++)
+		ml+=regControl.mlArrayPaged[page][j];	
+	$('#shipped-list').html(ml);
+
+}
+
+regControl.drawPricingList = function (page){
+	var i=0;
+	var j =0;
+	var ml='';
+	ml+=	'	<tr>';
+	ml+=	'		<th>Barcode</th>';
+	ml+=	'		<th>Margin Multiplier</th>';
+	ml+=	'		<th>Q*</th>';
+	ml+=	'	</tr>';
+	for (j = 0; j < regControl.mlArrayPaged[page].length; j++)
+		ml+=regControl.mlArrayPaged[page][j];
+	
+	$('#pricing-list').html(ml);
+
+}
 
 // ------------------------------ CALLBACKS ------------------------------
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		regControl.drawProductList(data.result);
+		if (data.result!= null)
+			regControl.productListController(data.result);
+		else
+			alert("You do not have any product");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
@@ -450,7 +705,8 @@ regControl._edit_prod_cb = function(data) {
 regControl._del_prod_cb = function(data) {
 	if (data.status==regControl.constants.OK){
 		alert("Deleted product "+data.deletedBarcode);
-		regControl.drawProductList(data.result);
+		regControl.productListController(data.result);
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
@@ -494,7 +750,8 @@ regControl._edit_store_cb = function(data) {
 regControl._del_store_cb = function(data) {
 	if (data.status==regControl.constants.OK){
 		alert("Succesfully deleted store "+data.store_id);
-		regControl.drawStoreList(data.result);
+		regControl.storeListController(data.result);
+		$("#loading-screen").addClass("hidden");
 	}else {
 		alert("Operation fail");
 	}
@@ -530,8 +787,13 @@ regControl._ret_stock_cb = function(data){
 };
 
 regControl._ret_store_cb = function(data){
-	if (data.status==regControl.constants.OK){
-		regControl.drawStoreList(data.result);
+	if (data.status==regControl.constants.OK){		
+		
+		if (data.result!=null)
+			regControl.storeListController(data.result);
+		else
+			alert("You don't have any store");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
@@ -540,7 +802,12 @@ regControl._ret_store_cb = function(data){
 
 regControl._ret_order_list_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		regControl.populate_order_list(data);
+		//regControl.populate_order_list(data);
+		if (data.result!=null)
+			regControl.orderListController(data.result);
+		else
+			alert("You have no unprocessed order");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
@@ -548,35 +815,17 @@ regControl._ret_order_list_cb = function(data){
 
 regControl._process_all_order_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		regControl.populate_order_list(data);
+		if (data.result!=null)
+			regControl.orderListController(data.result);
+		else
+			alert("You have no unprocessed order");
 		if (data.leftover_order)
 			alert("Some of the product cannot be processed due to insufficient stock. Please review this manually.");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
 };
-
-regControl.populate_order_list = function(data) {
-	var i=0;
-	var ml='';
-	ml+=	'<table class = "table" id = "order-list">';
-	ml+=	'	<tr>';
-	ml+=	'		<th>Barcode</th>';
-	ml+=	'		<th>Date</th>';
-	ml+=	'		<th>Store ID</th>';
-	ml+=	'		<th>Quantity</th>';
-	ml+=	'	</tr>';
-	for (i = 0; i< data.result.length ; i++) {
-		ml+='<tr>';
-		for (var propt in data.result[i]) {
-			ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-		}
-		ml+="</tr>";
-	}
-	ml+=	'</table>';
-	$('#content-container').html(ml);
-};
-
 regControl._populate_unprocessed_order_date_cb = function(data) {
 	if (data.status==regControl.constants.OK){
 		var i;
@@ -588,6 +837,7 @@ regControl._populate_unprocessed_order_date_cb = function(data) {
 		ml +=	'</select>';
 		$("#order-date-input-selection").html(ml);
 		$("#process-date-popup").removeClass("hidden");
+		$("#loading-screen").addClass("hidden");
 	} else {		
 		alert("operation fail");
 	}
@@ -604,6 +854,7 @@ regControl._populate_unprocessed_order_barcode_cb = function(data) {
 		ml +=	'</select>';
 		$("#order-barcode-input-selection").html(ml);
 		$("#process-barcode-popup").removeClass("hidden");
+		$("#loading-screen").addClass("hidden");
 	} else {		
 		alert("operation fail");
 	}
@@ -611,24 +862,11 @@ regControl._populate_unprocessed_order_barcode_cb = function(data) {
 
 regControl._ret_shipped_list_cb = function(data){
 	if (data.status==regControl.constants.OK){
-		var i=0;
-		var ml='';
-		ml+=	'<table class = "table" id = "shipped-list">';
-		ml+=	'	<tr>';
-		ml+=	'		<th>Barcode</th>';
-		ml+=	'		<th>Date</th>';
-		ml+=	'		<th>Store ID</th>';
-		ml+=	'		<th>Quantity</th>';
-		ml+=	'	</tr>';
-		for (i = 0; i< data.result.length ; i++) {
-			ml+='<tr>';
-			for (var propt in data.result[i]) {
-				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-			}
-			ml+="</tr>";
-		}
-		ml+=	'</table>';
-		$('#content-container').html(ml);
+		if (data.result!=null)
+			regControl.shippedListController(data.result);
+		else
+			alert("You don't have any shipment list!");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}
@@ -636,31 +874,11 @@ regControl._ret_shipped_list_cb = function(data){
 
 regControl._retrieve_pricing_list_cb = function(data) {
 	if (data.status==regControl.constants.OK){
-		var i=0;
-		var ml='';
-		ml+=	'<table class = "table" id = "shipped-list">';
-		ml+=	'	<tr>';
-		ml+=	'		<th>Barcode</th>';
-		ml+=	'		<th>Margin Multiplier</th>';
-		ml+=	'		<th>Q*</th>';
-		ml+=	'	</tr>';
-		for (i = 0; i< data.result.length ; i++) {
-			ml+='<tr>';
-			for (var propt in data.result[i]) {
-				ml+='<td class ="'+propt+'">'+data.result[i][propt]+'</td>';
-			}
-			ml+="</tr>";
-		}
-		ml+=	'</table>';
-		//hack to tryout the pricing system
-		ml+=	'<div class = "btn btn-primary" id = "update-pricing">Update Price</div>';
-		$('#content-container').html(ml);
-		
-		$('#update-pricing').off().on('click', function () {
-			regControl.api_call(	{action:"update_pricing"},
-									regControl._retrieve_pricing_list_cb,
-									null);
-		});
+		if (data.result!=null)
+			regControl.pricingListController(data.result);
+		else
+			alert("You don't have any pricing list!");
+		$("#loading-screen").addClass("hidden");
 	}else{
 		alert("operation fail");
 	}

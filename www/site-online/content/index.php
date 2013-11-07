@@ -11,6 +11,9 @@
 
 	</head>
 	<body>
+		<div class="hidden" id ="loading-screen">
+			<div id = "loading-text">Loading</div>
+		</div>
 		<div class = "container">
 			<div class = "hero-unit">
 				<h2>HyperMarket - Regional Server</h2>
