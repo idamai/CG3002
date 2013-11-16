@@ -6,8 +6,16 @@
 			$this->connection = $conn;
 		}
 		
-		function retrievePricingList() {
-			$sql = "SELECT `barcode`, `margin_multiplier`, `q_star` FROM `price_modifier`";
+		function retrieveTotalPricing(){
+			$sql = "SELECT COUNT(*) AS `total` FROM `price_modifier`";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$totalItems =  mysql_result($res,0,'total');
+			return $totalItems;
+		}
+		
+		function retrievePricingList($offset) {			
+			$sql = "SELECT `barcode`, `margin_multiplier`, `q_star` FROM `price_modifier` LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql, $this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -59,6 +67,7 @@
 			$sql = 'SELECT `minimal_stock` FROM `product` WHERE `barcode` = '.$barcode;
 			$res = mysql_query($sql, $this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
 			$minimalStock =  array();
 			for ($j = 0 ; $j < $rows ; $j++)
 			{

@@ -31,7 +31,7 @@
 	border-radius: 5px;
 }
 .content{
-	height:455px;
+	height:555px;
 	width : 70%;
 	overflow-x:auto;
 	overflow-y:auto;
@@ -40,7 +40,7 @@
 	padding: 15px;
 }
 	.content-item{
-		height:400px;
+		height:480px;
 		overflow-x:show;
 		overflow-y:auto;
 	}

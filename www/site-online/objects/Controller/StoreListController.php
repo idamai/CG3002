@@ -4,9 +4,16 @@
 		function __construct($conn){
 			$this->connection = $conn;
 		}
-		
-		function retrieveStoreList() {
-			$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0";
+		function retrieveTotalStore(){
+			$sql = "SELECT COUNT(*) AS `total` FROM `local_stores` WHERE `deleted` = 0 ";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$totalItems =  mysql_result($res,0,'total');
+			return $totalItems;
+		}
+		function retrieveStoreList($offset) {
+			$offset = mysql_real_escape_string($offset);
+			$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0 LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql,$this->connection);
 			
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());

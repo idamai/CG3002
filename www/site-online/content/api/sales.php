@@ -22,7 +22,7 @@ function dbclose($con)
 <html>
 	<head>
 		<title>Sales - Regional Server</title>
-		<link href="../css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="../css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="../css/regCustom.css" rel="stylesheet" media="screen">
 		<script src="../js/jquery-1.10.2.min.js"></script>
 		<script src="../js/bootstrap.min.js"></script>
@@ -37,13 +37,13 @@ function dbclose($con)
 				$con  = dbconnect();
 			?>
 			<h5>Hi <?php echo $_SESSION['username']; ?> (<a href="/logout.php">Logout</a>)</h5>
-			<a href="../index.php" class="btn btn-info">Home</a>
+			<a href="../index.php" class="btn btn-primary">Home</a>
 			<h3>Filter Results</h3>
 			<form action="sales.php" method="get">
 				<input type="text" name="store" placeholder="Enter StoreID">
 				<input type="text" name="barcode" placeholder="Enter Barcode">
 				<input type="hidden" name="page" value="1">
-				<button type="submit" class="btn btn-primary" style="margin-top:-10px;">Filter List</button>
+				<button type="submit" class="btn btn-success" style="margin-top:-10px;">Filter List</button>
 			</form>
 			<table class="table table-hover">
 				<tr class='sales-head'>
@@ -81,10 +81,10 @@ function dbclose($con)
   			</table>
   			
   			<?php if($prev>=1){ ?>
-			<a class = "btn btn-small btn-primary" href='sales.php?store=<?php echo $store; ?>&barcode=<?php echo $barcode; ?>&page=<?php echo $prev; ?>'>&#60; PREV</a>
+			<a class = "btn btn-sm btn-primary" href='sales.php?store=<?php echo $store; ?>&barcode=<?php echo $barcode; ?>&page=<?php echo $prev; ?>'>&#60; PREV</a>
 			<?php }?> 
 			<?php if($count == 10){ ?>
-			<a class = "btn btn-small btn-primary" href='sales.php?store=<?php echo $store; ?>&barcode=<?php echo $barcode; ?>&page=<?php echo $next; ?>'>NEXT &#62;</a>
+			<a class = "btn btn-sm btn-primary" href='sales.php?store=<?php echo $store; ?>&barcode=<?php echo $barcode; ?>&page=<?php echo $next; ?>'>NEXT &#62;</a>
 			<?php } ?>	
 			
 			<?php } else{ ?>

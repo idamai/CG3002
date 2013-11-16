@@ -58,9 +58,7 @@ $(document).ready(function(){
 	$("#product-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retrieve_product"},
-								regControl._ret_prod_cb,
-								null);
+		regControl.retrieveProductList(0,regControl._ret_prod_cb);
 		regControl.showAddProductButton();
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_PRODUCT;
@@ -78,9 +76,7 @@ $(document).ready(function(){
 	$("#store-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retrieve_store"},
-								regControl._ret_store_cb,
-								null);
+		regControl.retrieveStoreList(0,regControl._ret_store_cb);
 		regControl.hideAddProductButton();
 		regControl.showAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_STORE;
@@ -88,9 +84,7 @@ $(document).ready(function(){
 	$("#order-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.showOrderButtons();
-		regControl.api_call(	{action:"retrieve_order_list"},
-								regControl._ret_order_list_cb,
-								null);
+		regControl.retrieveOrderList(0,regControl._ret_order_list_cb);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_ORDER;
@@ -98,9 +92,7 @@ $(document).ready(function(){
 	$("#shipment-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retrieve_shipped_list"},
-								regControl._ret_shipped_list_cb,
-								null);
+		regControl.retrieveShippedList(0,regControl._ret_shipped_list_cb);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
@@ -108,9 +100,7 @@ $(document).ready(function(){
 	$("#pricing-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
-		regControl.api_call(	{action:"retrieve_pricing_list"},
-								regControl._retrieve_pricing_list_cb,
-								null);
+		regControl.retrievePricingList(0,regControl._ret_pricing_list_cb);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
@@ -176,7 +166,32 @@ $(document).ready(function(){
 				$("#process-date-popup").addClass("hidden");			
 	});
 });
-
+//--------------------api calls-----------------------
+regControl.retrieveProductList = function(offset,callback){
+	regControl.api_call(	{action:"retrieve_product", offset:offset},
+								callback,
+								null);
+};
+regControl.retrieveStoreList = function(offset,callback){
+	regControl.api_call(	{action:"retrieve_store", offset:offset},
+									callback,
+									null);
+};
+regControl.retrieveOrderList = function(offset,callback){
+	regControl.api_call(	{action:"retrieve_order_list", offset:offset},
+								callback,
+								null);
+};
+regControl.retrieveShippedList = function(offset, callback){
+	regControl.api_call(	{action:"retrieve_shipped_list", offset:offset},
+									callback,
+									null);
+};
+regControl.retrievePricingList = function(offset, callback){
+	regControl.api_call(	{action:"retrieve_pricing_list", offset:offset},
+								callback,
+								null);
+};
 regControl.hideAddProductButton = function() {
 	if (!$("#add-new-product-holder").hasClass("hidden"))
 		$("#add-new-product-holder").addClass("hidden");
@@ -302,35 +317,46 @@ regControl.initDiscardStock = function(barcode) {
 regControl.init_search_bar = function(){
 	$("#search-bar").keyup(function(e) {
 		  if(e.which == 13) {
-			  var userInput = $(this).val();
-				/*$("#content-container table tbody tr").map(function(index, value) {
-					$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
-				});*/
-			  var callback_fn;
-			  switch(regControl.currentActive) {
-				case regControl.constants.ACTIVE_NONE:
-					break;
-				case regControl.constants.ACTIVE_PRODUCT:
-					callback_fn = regControl._ret_prod_cb;
-					break;
-				case regControl.constants.ACTIVE_STORE:
-					callback_fn = regControl._ret_store_cb;
-					break;			
-				case regControl.constants.ACTIVE_ORDER:
-					callback_fn = regControl._ret_order_list_cb;
-					break;
-				case regControl.constants.ACTIVE_SHIPPED:
-					callback_fn = regControl._ret_order_list_cb;
-					break;			
-				case regControl.constants.ACTIVE_PRICING:
-					callback_fn = regControl._retrieve_pricing_list_cb;
-					break;
-			  }
+				  var userInput = $(this).val();
+					/*$("#content-container table tbody tr").map(function(index, value) {
+						$(value).toggle($(value).text().toLowerCase().indexOf(userInput) >= 0);
+					});*/
+				  var callback_fn;
+				  var api_call;
+				  switch(regControl.currentActive) {
+					case regControl.constants.ACTIVE_NONE:
+						break;
+					case regControl.constants.ACTIVE_PRODUCT:
+						callback_fn = regControl._ret_prod_cb;
+						api_call = regControl.retrieveProductList;
+						break;
+					case regControl.constants.ACTIVE_STORE:
+						callback_fn = regControl._ret_store_cb;
+						api_call = regControl.retrieveStoreList;
+						break;			
+					case regControl.constants.ACTIVE_ORDER:
+						callback_fn = regControl._ret_order_list_cb;
+						api_call = regControl.retrieveOrderList;
+						break;
+					case regControl.constants.ACTIVE_SHIPPED:
+						callback_fn = regControl._ret_shipped_list_cb;
+						api_call = regControl.retrieveShippedList;
+						break;			
+					case regControl.constants.ACTIVE_PRICING:
+						callback_fn = regControl._retrieve_pricing_list_cb;
+						api_call = regControl.retrievePricingList;
+						break;
+				  }
 			  
-			  if (regControl.currentActive != regControl.constants.ACTIVE_NONE)				 
-				regControl.api_call(	{action:"search_data_base",key:userInput,mode:regControl.currentActive},
-												callback_fn,
-												null);
+				if (regControl.currentActive != regControl.constants.ACTIVE_NONE) {
+					if (userInput!='' && userInput!= null) {
+						regControl.api_call(	{action:"search_data_base",key:userInput,mode:regControl.currentActive},
+													callback_fn,
+													null);
+					} else {
+						api_call(0,callback_fn);
+					}
+				}
 		}
 	});
 };
@@ -454,10 +480,10 @@ regControl.buildPricingPagedArray = function(pricingArray) {
 	}
 	regControl.mlArrayPager();
 }
-
-regControl.productListController = function (prodArray) {
+//---------------------main controller functions---------------------------
+regControl.productListController = function (prodArray,totalItems) {
 	regControl.buildProductPagedArray(prodArray);
-	var pageCounter = regControl.mlArrayPaged.length;
+	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
 	ml+= '<table class = "table" id = "product-list">';
 	ml+='</table>';
@@ -467,12 +493,12 @@ regControl.productListController = function (prodArray) {
 		regControl.drawProductList(0);
 	else
 		alert ("You do not have any product data");
-	regControl.pageController(pageCounter,regControl.drawProductList);
+	regControl.pageController(pageCounter,regControl.drawProductList,regControl.retrieveProductList,regControl._ret_prod_paged_cb);
 	
 }
 regControl.storeListController = function (storeArray) {
 	regControl.buildStorePagedArray(storeArray);
-	var pageCounter = regControl.mlArrayPaged.length;
+	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
 	ml+= '<table class = "table" id = "store-list">';
 	ml+='</table>';
@@ -482,12 +508,12 @@ regControl.storeListController = function (storeArray) {
 		regControl.drawStoreList(0);
 	else
 		alert ("You do not have any store data");
-	regControl.pageController(pageCounter,regControl.drawStoreList);
+	regControl.pageController(pageCounter,regControl.drawStoreList,regControl.retrieveStoreList,regControl._ret_store_paged_cb);
 }
 
 regControl.orderListController = function (orderArray) {
 	regControl.buildOrderPagedArray(orderArray);
-	var pageCounter = regControl.mlArrayPaged.length;
+	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
 	ml+= '<table class = "table" id = "order-list">';
 	ml+='</table>';
@@ -497,11 +523,11 @@ regControl.orderListController = function (orderArray) {
 		regControl.drawOrderList(0);
 	else
 		alert ("You do not have any order data");
-	regControl.pageController(pageCounter,regControl.drawOrderList);
+	regControl.pageController(pageCounter,regControl.drawOrderList,regControl.retrieveOrderList,regControl._ret_order_list_paged_cb);
 }
 regControl.shippedListController = function (shippedArray) {
 	regControl.buildShippedPagedArray(shippedArray);
-	var pageCounter = regControl.mlArrayPaged.length;
+	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
 	ml+= '<table class = "table" id = "shipped-list">';
 	ml+='</table>';
@@ -511,12 +537,12 @@ regControl.shippedListController = function (shippedArray) {
 		regControl.drawShippedList(0);
 	else
 		alert ("You do not have any shipment data");
-	regControl.pageController(pageCounter,regControl.drawShippedList);
+	regControl.pageController(pageCounter,regControl.drawShippedList,regControl.retrieveShippedList,regControl._ret_shipped_list_paged_cb);
 }
 
 regControl.pricingListController = function (pricingArray) {
 	regControl.buildPricingPagedArray(pricingArray);
-	var pageCounter = regControl.mlArrayPaged.length;
+	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
 	ml+= '<table class = "table" id = "pricing-list">';
 	ml+='</table>';
@@ -526,9 +552,10 @@ regControl.pricingListController = function (pricingArray) {
 		regControl.drawPricingList(0);
 	else
 		alert ("You do not have any pricing data");
-	regControl.pageController(pageCounter,regControl.drawPricingList);
+	regControl.pageController(pageCounter,regControl.drawPricingList,regControl.retrievePricingList,regControl._ret_pricing_list_paged_cb);
 }
-regControl.pageController = function(pageCounter,drawFunction){
+
+regControl.pageController = function(pageCounter,drawFunction,apiCall,callback){
 	var perPageLimit = 10;
 	var i;
 	var ml='';	
@@ -551,16 +578,21 @@ regControl.pageController = function(pageCounter,drawFunction){
 	$(".next-paging").off().on("click",function(){
 		var nextPaging = $(this).parent().data("cur-paging")+1;
 		$(this).parent().addClass("hidden");
+		var offset = nextPaging*7;
+		apiCall(offset,callback);
 		$("#paging-"+nextPaging).removeClass("hidden");
 	});
 	$(".prev-paging").off().on("click",function(){
 		var nextPaging = $(this).parent().data("cur-paging")-1;
 		$(this).parent().addClass("hidden");
+		var offset = nextPaging*7;
+		apiCall(offset,callback);
 		$("#paging-"+nextPaging).removeClass("hidden");
 	});
 	$(".page-controller").off().on("click",function(){
-		var curPage = $(this).data("page");
+		var curPage =  $(this).data("page");
 		//regControl.drawProductList(curPage);
+		curPage = curPage%10;
 		drawFunction(curPage);
 	});
 }
@@ -693,10 +725,11 @@ regControl.drawPricingList = function (page){
 }
 
 // ------------------------------ CALLBACKS ------------------------------
+//retrieve lists call backs
 regControl._ret_prod_cb = function(data){
 	if (data.status==regControl.constants.OK){
 		if (data.result!= null)
-			regControl.productListController(data.result);
+			regControl.productListController(data.result, data.total);
 		else
 			alert("You do not have any product");
 		$("#loading-screen").addClass("hidden");
@@ -704,6 +737,122 @@ regControl._ret_prod_cb = function(data){
 		alert("operation fail");
 	}
 };
+
+
+regControl._ret_store_cb = function(data){
+	if (data.status==regControl.constants.OK){		
+		
+		if (data.result!=null)
+			regControl.storeListController(data.result, data.total);
+		else
+			alert("You don't have any store");
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+};
+
+
+regControl._ret_shipped_list_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null)
+			regControl.shippedListController(data.result, data.total);
+		else
+			alert("You don't have any shipment list!");
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+};
+
+regControl._retrieve_pricing_list_cb = function(data) {
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null)
+			regControl.pricingListController(data.result, data.total);
+		else
+			alert("You don't have any pricing list!");
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
+
+regControl._ret_order_list_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null)
+			regControl.orderListController(data.result, data.total);
+		else
+			alert("You have no unprocessed order");
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+};
+regControl._ret_prod_paged_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null) {
+			regControl.buildProductPagedArray(data.result);
+			regControl.drawProductList(0);
+		} else {
+			alert("You have no more product");
+		}
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
+regControl._ret_store_paged_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null) {
+			regControl.buildStorePagedArray(data.result);
+			regControl.drawStoreList(0);
+		} else {
+			alert("You have no more store");
+		}
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
+regControl._ret_order_list_paged_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null) {
+			regControl.buildOrderPagedArray(data.result);
+			regControl.drawOrderList(0);
+		} else {
+			alert("You have no more unprocessed order");
+		}
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
+regControl._ret_shipped_list_paged_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null) {
+			regControl.buildShippedPagedArray(data.result);
+			regControl.drawShippedList(0);
+		} else {
+			alert("You have no more shipped order");
+		}
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
+regControl._ret_pricing_list_paged_cb = function(data){
+	if (data.status==regControl.constants.OK){
+		if (data.result!=null) {
+			regControl.buildPricingPagedArray(data.result);
+			regControl.drawPricingList(0);
+		} else {
+			alert("You have no more pricing order");
+		}
+		$("#loading-screen").addClass("hidden");
+	}else{
+		alert("operation fail");
+	}
+}
 
 regControl._edit_prod_cb = function(data) {
 	if (data.status==regControl.constants.OK){
@@ -821,32 +970,7 @@ regControl._ret_stock_cb = function(data){
 	}
 };
 
-regControl._ret_store_cb = function(data){
-	if (data.status==regControl.constants.OK){		
-		
-		if (data.result!=null)
-			regControl.storeListController(data.result);
-		else
-			alert("You don't have any store");
-		$("#loading-screen").addClass("hidden");
-	}else{
-		alert("operation fail");
-	}
-};
 
-
-regControl._ret_order_list_cb = function(data){
-	if (data.status==regControl.constants.OK){
-		//regControl.populate_order_list(data);
-		if (data.result!=null)
-			regControl.orderListController(data.result);
-		else
-			alert("You have no unprocessed order");
-		$("#loading-screen").addClass("hidden");
-	}else{
-		alert("operation fail");
-	}
-};
 
 regControl._process_all_order_cb = function(data){
 	if (data.status==regControl.constants.OK){
@@ -894,27 +1018,3 @@ regControl._populate_unprocessed_order_barcode_cb = function(data) {
 		alert("operation fail");
 	}
 };
-
-regControl._ret_shipped_list_cb = function(data){
-	if (data.status==regControl.constants.OK){
-		if (data.result!=null)
-			regControl.shippedListController(data.result);
-		else
-			alert("You don't have any shipment list!");
-		$("#loading-screen").addClass("hidden");
-	}else{
-		alert("operation fail");
-	}
-};
-
-regControl._retrieve_pricing_list_cb = function(data) {
-	if (data.status==regControl.constants.OK){
-		if (data.result!=null)
-			regControl.pricingListController(data.result);
-		else
-			alert("You don't have any pricing list!");
-		$("#loading-screen").addClass("hidden");
-	}else{
-		alert("operation fail");
-	}
-}

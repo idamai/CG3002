@@ -5,8 +5,17 @@
 			$this->connection = $conn;
 		}
 		
-		function retrieveProductList() {
-			$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product` WHERE `deleted` = 0";
+		function retrieveTotalProducts() {
+			$sql = "SELECT COUNT(*) as `total` FROM `product` WHERE `deleted` = 0";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$totalItems =  mysql_result($res,0,'total');
+			return $totalItems;
+		}
+		
+		function retrieveProductList($offset) {
+			$offset = mysql_real_escape_string($offset);
+			$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product` WHERE `deleted` = 0 LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql,$this->connection);
 			
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());

@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<title>HyperMarket - Regional Server</title>
-		<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="css/regCustom.css" rel="stylesheet" media="screen">
 		<script src="js/jquery-1.10.2.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
@@ -29,7 +29,7 @@
 				<div class = "btn btn-primary btn-block" id="order-btn">Order List</div>
 				<div class = "btn btn-primary btn-block" id="shipment-btn">Shipment List</div>
 				<div class = "btn btn-primary btn-block" id="pricing-btn">Pricing Details</div>
-				<div class = "btn btn-info btn-block" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
+				<div class = "btn btn-default btn-block" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
 				<div class = "btn btn-inverse btn-block" id="finance-btn">Financial Report</div>
 			</div>
 			<div class = "content right">

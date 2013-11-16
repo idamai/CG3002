@@ -196,9 +196,18 @@
 			}
 			return $barcodes;
 		}
-
-		function getAllUnprocessedOrder() {
-			$sql = "SELECT * FROM `product_order` WHERE `processed` = 0";
+		
+		function retreiveTotalUnprocessedOrder(){
+			$sql = "SELECT COUNT(*) AS `total` FROM `product_order` WHERE `processed` = 0 ";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$totalItems =  mysql_result($res,0,'total');
+			return $totalItems;
+		}
+		
+		function getAllUnprocessedOrder($offset) {		
+			$offset = mysql_real_escape_string($offset);
+			$sql = "SELECT * FROM `product_order` WHERE `processed` = 0 LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -213,7 +222,31 @@
 			}
 			return $retArr;
 		}
-		
+		function retreiveTotalShippedOrder(){
+			$sql = "SELECT COUNT(*) AS `total` FROM `product_shipped`";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$totalItems =  mysql_result($res,0,'total');
+			return $totalItems;
+		}
+		function getAllShippedOrder($offset) {
+			$offset = mysql_real_escape_string($offset);
+			$sql = "SELECT * FROM `product_shipped` LIMIT 70 OFFSET ".$offset;
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$shippedList =  array();
+			for ($j = 0 ; $j < $rows ; $j++)
+			{
+				$shippedList[$j] = array(
+												"barcode" => mysql_result($res,$j,'barcode'),
+												"date" => mysql_result($res,$j,'date'),
+												"store_id" => mysql_result($res,$j,'store_id'),
+												"quantity" => mysql_result($res,$j,'quantity')
+											);		
+			}
+			return $shippedList;
+		}
 		function getAllOrderPerBarcode() {
 			$sql = "SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 GROUP BY `barcode`";
 			$res = mysql_query($sql,$this->connection);

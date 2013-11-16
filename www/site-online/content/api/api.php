@@ -48,7 +48,9 @@ try{
 	case "retrieve_product":
 		require_once("../../objects/Controller/ProductListController.php");
 		$plc = new ProductListController($conn);
-		$retArr["result"] = $plc->retrieveProductList();
+		$offset = $p["offset"];
+		$retArr["total"] = $plc->retrieveTotalProducts();
+		$retArr["result"] = $plc->retrieveProductList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "restock_all_product":
@@ -57,7 +59,8 @@ try{
 		$plc = new ProductListController($conn);
 		$wc = new WarehouseController($conn);
 		$wc->addStockForAll();
-		 $retArr["result"] = $plc->retrieveProductList();
+		$retArr["total"] = $plc->retrieveTotalProducts();
+		 $retArr["result"] = $plc->retrieveProductList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "add_new_product":
@@ -70,7 +73,8 @@ try{
 		$minimal_stock = $p["minimal_stock"];
 		$plc = new ProductListController($conn);
 		$plc->addNewProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
-		$retArr["result"] = $plc->retrieveProductList();
+		$retArr["total"] = $plc->retrieveTotalProducts();
+		$retArr["result"] = $plc->retrieveProductList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_product_info":
@@ -89,8 +93,9 @@ try{
 		$cost = $p["cost"];
 		$minimal_stock = $p["minimal_stock"];
 		$plc = new ProductListController($conn);
-		$plc->editProductInformation($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
-		$retArr["result"] = $plc->retrieveProductList($barcode);
+		$plc->editProductInformation($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);		
+		$retArr["total"] = $plc->retrieveTotalProducts();
+		$retArr["result"] = $plc->retrieveProductList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "delete_product":
@@ -99,7 +104,8 @@ try{
 		$plc = new ProductListController($conn);
 		$plc->deleteProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
 		$retArr["deletedBarcode"] = $barcode;
-		$retArr["result"] = $plc->retrieveProductList($barcode);
+		$retArr["total"] = $plc->retrieveTotalProducts();
+		$retArr["result"] = $plc->retrieveProductList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_stock":
@@ -133,31 +139,25 @@ try{
 	case "retrieve_order_list":
 		require_once("../../objects/Controller/OrderController.php");
 		$oc = new OrderController($conn);
-		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
+		$offset = $p["offset"];
+		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
+		$retArr["result"] =  $oc->getAllUnprocessedOrder($offset);
 		$retArr["status"] = $OK;
 		break;
     case "import_order_list":
 		require_once("../../objects/Controller/OrderController.php");
 		$oc = new OrderController($conn);
 		$oc->readJson();
-		$retArr["result"] =  $oc->getAllUnprocessedOrder($conn);
+		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
+		$retArr["result"] =  $oc->getAllUnprocessedOrder($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_shipped_list":
-		$sql = 'SELECT * FROM `product_shipped` ORDER BY `date` DESC';
-		$res = mysql_query($sql,$conn);
-		if (!$res) throw new Exception("Database access failed: " . mysql_error());
-		$rows = mysql_num_rows($res);
-		$retArr["result"] =  array();
-		for ($j = 0 ; $j < $rows ; $j++)
-		{
-			$retArr["result"][$j] = array(
-											"barcode" => mysql_result($res,$j,'barcode'),
-											"date" => mysql_result($res,$j,'date'),
-											"store_id" => mysql_result($res,$j,'store_id'),
-											"quantity" => mysql_result($res,$j,'quantity')
-										);		
-		}
+		require_once("../../objects/Controller/OrderController.php");
+		$oc = new OrderController($conn);
+		$offset = $p["offset"];
+		$retArr["total"] = $oc->retreiveTotalShippedOrder();
+		$retArr["result"] =  $oc->getAllShippedOrder($offset);
 		$retArr["status"] = $OK;
 		break;
 	//this is for receiving stock for 1 item. mutilple item version not updateed
@@ -306,7 +306,9 @@ try{
 	case "retrieve_store":
 		require_once("../../objects/Controller/StoreListController.php");
 		$slc = new StoreListController($conn);
-		$retArr["result"] = $slc->retrieveStoreList();
+		$offset = $p["offset"];
+		$retArr["total"] = $slc->retrieveTotalStore();
+		$retArr["result"] = $slc->retrieveStoreList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "add_store":
@@ -317,7 +319,8 @@ try{
 		require_once("../../objects/Controller/StoreListController.php");
 		$slc = new StoreListController($conn);
 		$slc->addNewStore($store_id, $name, $location, $password);
-		$retArr["result"] = $slc->retrieveStoreList();
+		$retArr["total"] = $slc->retrieveTotalStore();
+		$retArr["result"] = $slc->retrieveStoreList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_store_info":
@@ -336,7 +339,8 @@ try{
 		$slc = new StoreListController($conn);
 		$store_id = $p["store_id"];
 		$slc->editStoreInformation($store_id, $name, $location, $password);
-		$retArr["result"] = $slc->retrieveStoreList();
+		$retArr["total"] = $slc->retrieveTotalStore();
+		$retArr["result"] = $slc->retrieveStoreList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "delete_store":
@@ -345,13 +349,16 @@ try{
 		$store_id = $p["store_id"];
 		$slc->deleteStore($store_id);
 		$retArr["store_id"] = $store_id;
-		$retArr["result"] =  $slc->retrieveStoreList();
+		$retArr["total"] = $slc->retrieveTotalStore();
+		$retArr["result"] = $slc->retrieveStoreList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_pricing_list":
 		require_once("../../objects/Controller/PricingController.php");
 		$pc  = new PricingController($conn);
-		$retArr["result"] = $pc->retrievePricingList();
+		$offset = $p["offset"];
+		$retArr["total"] = $pc->retrieveTotalPricing();
+		$retArr["result"] = $pc->retrievePricingList($offset);
 		$retArr["status"] = $OK;
 		break;
 	case "update_pricing":
@@ -361,7 +368,8 @@ try{
 		$pc  = new PricingController($conn);
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
-		$retArr["result"] = $pc->retrievePricingList();		
+		$retArr["total"] = $pc->retrieveTotalPricing();
+		$retArr["result"] = $pc->retrievePricingList();
 		$retArr["status"] = $OK;
 		break;
 	case "read_order":
@@ -384,7 +392,7 @@ try{
 		*/
 		switch($mode){
 			case $ACTIVE_PRODUCT:
-				$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product` WHERE `deleted` = 0 AND ( `barcode` LIKE '%$key%' OR `name` LIKE '%$key%' OR `category` LIKE '%$key%' OR `manufacturer` LIKE '%$key%' OR `cost` LIKE '%$key%')";
+				$sql = "SELECT `barcode`,`name`,`category`,`manufacturer`,`cost` FROM `product` WHERE `deleted` = 0 AND ( `barcode` LIKE '%$key%' OR `name` LIKE '%$key%' OR `category` LIKE '%$key%' OR `manufacturer` LIKE '%$key%' OR `cost` LIKE '%$key%') LIMIT 70";
 				$res = mysql_query($sql,$conn);
 				
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -402,7 +410,7 @@ try{
 				}
 				break;
 			case $ACTIVE_STORE:
-				$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0  AND ( `id` LIKE '%$key%' OR `name` LIKE '%$key%' OR `location` LIKE '%$key%')";
+				$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0  AND ( `id` LIKE '%$key%' OR `name` LIKE '%$key%' OR `location` LIKE '%$key%') LIMIT 70";
 				$res = mysql_query($sql,$conn);
 				
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -418,7 +426,7 @@ try{
 				}
 				break;
 			case $ACTIVE_ORDER:
-				$sql = "SELECT * FROM `product_order` WHERE `processed` = 0 AND ( `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%')";
+				$sql = "SELECT * FROM `product_order` WHERE `processed` = 0 AND ( `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%') LIMIT 70";
 				$res = mysql_query($sql,$conn);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				$rows = mysql_num_rows($res);
@@ -433,7 +441,7 @@ try{
 				}
 				break;
 			case $ACTIVE_SHIPPED:
-				$sql = "SELECT * FROM `product_shipped` WHERE  `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%'";
+				$sql = "SELECT * FROM `product_shipped` WHERE  `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%' LIMIT 70";
 				$res = mysql_query($sql,$conn);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				$rows = mysql_num_rows($res);
@@ -448,7 +456,7 @@ try{
 				}
 				break;
 			case $ACTIVE_PRICING:
-				$sql = "SELECT `barcode`, `margin_multiplier`, `q_star` FROM `price_modifier` WHERE  `barcode` LIKE '%$key%' OR `margin_multiplier` LIKE '%$key%' OR `);` LIKE '%$key%'";
+				$sql = "SELECT `barcode`, `margin_multiplier`, `q_star` FROM `price_modifier` WHERE  `barcode` LIKE '%$key%' OR `margin_multiplier` LIKE '%$key%' OR `);` LIKE '%$key%' LIMIT 70";
 				$res = mysql_query($sql, $conn);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				$rows = mysql_num_rows($res);
@@ -465,6 +473,7 @@ try{
 			default:
 				break;
 		}
+		$retArr["total"] = $rows;
 		$retArr["result"] = $result;
 		$retArr["status"] = $OK;
 	}

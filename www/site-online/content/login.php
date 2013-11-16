@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<title>Login</title>
-		<link href="../css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="../css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="../css/regCustom.css" rel="stylesheet" media="screen">
 		<script src="../js/jquery-1.10.2.min.js"></script>
 		<script src="../js/bootstrap.min.js"></script>
@@ -108,7 +108,7 @@
         <h2 class="form-signin-heading">Login</h2>
         <input type="text" class="input-block-level" name="username" placeholder="Username">
         <input type="password" class="input-block-level" name="password" placeholder="Password">
-        <button class="btn btn-large btn-primary" type="submit">Login</button>
+        <button class="btn btn-lg btn-primary" type="submit">Login</button>
       </form>
 
     <?php } else{ ?>
