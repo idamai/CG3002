@@ -133,8 +133,8 @@
 			}
 			foreach ($shipment as $store => $barcodeShipped){
 				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
-				$response['shipment_list'] = $barcodeShipped;
-				$response['product_list'] = $productList;
+				$response['shipment_list'] = $this->encrypt($barcodeShipped);
+				$response['product_list'] = $this->encrypt($productList);
 				$fp = fopen($filename, 'w');
 				fwrite($fp, json_encode($response));
 				fclose($fp);
