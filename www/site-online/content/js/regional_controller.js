@@ -496,7 +496,7 @@ regControl.productListController = function (prodArray,totalItems) {
 	regControl.pageController(pageCounter,regControl.drawProductList,regControl.retrieveProductList,regControl._ret_prod_paged_cb);
 	
 }
-regControl.storeListController = function (storeArray) {
+regControl.storeListController = function (storeArray,totalItems) {
 	regControl.buildStorePagedArray(storeArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
@@ -511,7 +511,7 @@ regControl.storeListController = function (storeArray) {
 	regControl.pageController(pageCounter,regControl.drawStoreList,regControl.retrieveStoreList,regControl._ret_store_paged_cb);
 }
 
-regControl.orderListController = function (orderArray) {
+regControl.orderListController = function (orderArray,totalItems) {
 	regControl.buildOrderPagedArray(orderArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
@@ -525,7 +525,7 @@ regControl.orderListController = function (orderArray) {
 		alert ("You do not have any order data");
 	regControl.pageController(pageCounter,regControl.drawOrderList,regControl.retrieveOrderList,regControl._ret_order_list_paged_cb);
 }
-regControl.shippedListController = function (shippedArray) {
+regControl.shippedListController = function (shippedArray,totalItems) {
 	regControl.buildShippedPagedArray(shippedArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
@@ -540,7 +540,7 @@ regControl.shippedListController = function (shippedArray) {
 	regControl.pageController(pageCounter,regControl.drawShippedList,regControl.retrieveShippedList,regControl._ret_shipped_list_paged_cb);
 }
 
-regControl.pricingListController = function (pricingArray) {
+regControl.pricingListController = function (pricingArray,totalItems) {
 	regControl.buildPricingPagedArray(pricingArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
