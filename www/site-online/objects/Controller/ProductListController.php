@@ -73,7 +73,19 @@
 			return $productList[0];
 			
 		}
-		
+		function retrieveAllBarcode() {
+			$sql = "SELECT `barcode` FROM `product` WHERE `deleted` = 0";
+			$res = mysql_query($sql,$this->connection);
+			
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$barcodeList =  array();
+			for ($j = 0 ; $j < $rows ; $j++)
+			{
+				$barcodeList[$j] = mysql_result($res,$j,'barcode');
+			}
+			return $barcodeList;
+		}
 		function editProductInformation($barcode, $name, $category, $manufacturer, $cost, $minimal_stock) {
 			$barcode = mysql_real_escape_string($barcode);
 			$name = mysql_real_escape_string($name);

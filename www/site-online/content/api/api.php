@@ -376,7 +376,19 @@ try{
 	case "read_order":
 		require_once("../../objects/Controller/OrderController.php");
 		$oc = new OrderController($conn);
-		
+		break;
+	case "performance_metric":
+		require_once("../../objects/Controller/PerformanceMetricsController.php");
+		$pmc = new PerformanceMetricsController($conn);
+		$barcode = $p["barcode"];
+		$retArr["result"] = $pmc->retreiveProductSalesMetrics($barcode);
+		$retArr["status"] = $OK;
+		break;
+	case "retreive_all_barcode":
+		require_once("../../objects/Controller/ProductListController.php");
+		$plc = new ProductListController($conn);
+		$retArr["result"] = $plc->retrieveAllBarcode();
+		$retArr["status"] = $OK;
 		break;
 	case "search_data_base":
 		$key = $p["key"];

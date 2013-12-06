@@ -108,7 +108,20 @@
 				}*/
 			}
 			//retreive and send updated product list 
-			
+			//webstore is always store 0, thus this store is special and will only receive the total amount of stocks in the system
+			$sql = 'SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` GROUP BY `barcode`';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			for ($j = 0 ; $j < $rows ; $j++)
+			{
+				$barcode = mysql_result($res,$j,'barcode');
+				$quantity = mysql_result($res,$j,'stock');
+					$shipment[0][] = array( 
+												'barcode' => $barcode,
+												'quantity' => $this->encrypt($quantity)
+												);
+			}
 			$sql = 'UPDATE `product_shipped` SET  `processed` = 1 WHERE `processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());

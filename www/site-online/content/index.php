@@ -5,10 +5,13 @@
 		<title>HyperMarket - Regional Server</title>
 		<link href="css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="css/regCustom.css" rel="stylesheet" media="screen">
-		<script src="js/jquery-1.10.2.min.js"></script>
-		<script src="js/bootstrap.min.js"></script>
-		<script src="js/regional_controller.js"></script>
-
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="js/regional_controller.js"></script>
+		<script type="text/javascript" src="js/core_controller.js"></script>
+		<script type="text/javascript" src="js/metrics_controller.js"></script>
+		<script type="text/javascript" src="js/controller_initiator.js"></script>
 	</head>
 	<body>
 		<div class="hidden" id ="loading-screen">
@@ -31,6 +34,7 @@
 				<div class = "top-menu" id="pricing-btn">Pricing Details</div>
 				<div class = "top-menu" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
 				<div class = "top-menu" id="finance-btn">Financial Report</div>
+				<div class = "top-menu" id="analytics-btn">Performance Metrics</div>
 			</div>
 			<div class = "content">
 				<input type = "text" id = "search-bar" placeholder="Search here" ></input>
