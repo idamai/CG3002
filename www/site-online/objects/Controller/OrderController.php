@@ -98,7 +98,7 @@
 				*/
 					$shipment[$store_id][] = array( 
 												'barcode' => $barcode,
-												'quantity' => $quantity
+												'quantity' => $this->encrypt($quantity)
 												);
 				/*} else {
 					$shipment[$store_id] = array();
@@ -108,7 +108,8 @@
 				}*/
 			}
 			//retreive and send updated product list 
-			$sql = 'UPDATE `product_shipped` SET `processed` = 1 WHERE `processed` = 0';
+			
+			$sql = 'UPDATE `product_shipped` SET  `processed` = 1 WHERE `processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			
@@ -123,7 +124,7 @@
 											"name" => mysql_result($res,$j,'name'),
 											"category" => mysql_result($res,$j,'category'),
 											"manufacturer" => mysql_result($res,$j,'manufacturer'),
-											"costprice" => mysql_result($res,$j,'costprice'),
+											"costprice" => $this->encrypt(mysql_result($res,$j,'costprice')),
 											"deleted" => mysql_result($res,$j,'deleted')
 											);
 			}
@@ -137,17 +138,46 @@
 			}
 			foreach ($shipment as $store => $barcodeShipped){
 				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
-				$response['shipment_list'] = $this->encrypt($barcodeShipped);
-				$response['product_list'] = $this->encrypt($productList);
+				$response['shipment_list'] = $barcodeShipped;
+				$response['product_list'] = $productList;
 				$fp = fopen($filename, 'w');
-				fwrite($fp, json_encode($response));
+				fwrite($fp, json_encode($response['shipment_list']));				
 				fclose($fp);
+				foreach ($response['product_list'] as $index => $product){
+					$fp = fopen($filename, 'a');
+					fwrite($fp, json_encode($product));				
+					fclose($fp);
+				}
 			}	
 			
 			//name file by shop id from settings file
 		}
 
-		
+		function retreiveTotalShippedOrder(){
+		   $sql = "SELECT COUNT(*) AS `total` FROM `product_shipped`";
+		   $res = mysql_query($sql, $this->connection);
+		  if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		  $totalItems =  mysql_result($res,0,'total');
+		  return $totalItems;
+		}
+		function getAllShippedOrder($offset) {
+		  $offset = mysql_real_escape_string($offset);
+		  $sql = "SELECT * FROM `product_shipped` LIMIT 70 OFFSET ".$offset;
+		  $res = mysql_query($sql,$this->connection);
+		  if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		  $rows = mysql_num_rows($res);
+		  $shippedList =  array();
+		  for ($j = 0 ; $j < $rows ; $j++)
+		  {
+			$shippedList[$j] = array(
+							"barcode" => mysql_result($res,$j,'barcode'),
+							"date" => mysql_result($res,$j,'date'),
+							"store_id" => mysql_result($res,$j,'store_id'),
+							"quantity" => mysql_result($res,$j,'quantity')
+						  );    
+		  }
+		  return $shippedList;
+		}
 		function processBarcodeOrder( $barcode, $quantity){
 			$sql = "SELECT `batchdate`, `stock` FROM `warehouse` WHERE `barcode` = ".$barcode." AND STOCK > 0 ORDER BY `batchdate`";
 			$res = mysql_query($sql,$this->connection);
@@ -200,18 +230,18 @@
 			}
 			return $barcodes;
 		}
-		
+
 		function retreiveTotalUnprocessedOrder(){
-			$sql = "SELECT COUNT(*) AS `total` FROM `product_order` WHERE `processed` = 0 ";
-			$res = mysql_query($sql, $this->connection);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			$totalItems =  mysql_result($res,0,'total');
-			return $totalItems;
-		}
-		
-		function getAllUnprocessedOrder($offset) {		
-			$offset = mysql_real_escape_string($offset);
-			$sql = "SELECT * FROM `product_order` WHERE `processed` = 0 LIMIT 70 OFFSET ".$offset;
+		   $sql = "SELECT COUNT(*) AS `total` FROM `product_order` WHERE `processed` = 0 ";
+		   $res = mysql_query($sql, $this->connection);
+		   if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		   $totalItems =  mysql_result($res,0,'total');
+		   return $totalItems;
+		 }
+		 
+		 function getAllUnprocessedOrder($offset) {    
+		    $offset = mysql_real_escape_string($offset);
+		    $sql = "SELECT * FROM `product_order` WHERE `processed` = 0 LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -226,31 +256,7 @@
 			}
 			return $retArr;
 		}
-		function retreiveTotalShippedOrder(){
-			$sql = "SELECT COUNT(*) AS `total` FROM `product_shipped` WHERE `processed` = 1";
-			$res = mysql_query($sql, $this->connection);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			$totalItems =  mysql_result($res,0,'total');
-			return $totalItems;
-		}
-		function getAllShippedOrder($offset) {
-			$offset = mysql_real_escape_string($offset);
-			$sql = "SELECT * FROM `product_shipped` WHERE `processed` = 1 LIMIT 70 OFFSET ".$offset;
-			$res = mysql_query($sql,$this->connection);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			$rows = mysql_num_rows($res);
-			$shippedList =  array();
-			for ($j = 0 ; $j < $rows ; $j++)
-			{
-				$shippedList[$j] = array(
-												"barcode" => mysql_result($res,$j,'barcode'),
-												"date" => mysql_result($res,$j,'date'),
-												"store_id" => mysql_result($res,$j,'store_id'),
-												"quantity" => mysql_result($res,$j,'quantity')
-											);		
-			}
-			return $shippedList;
-		}
+		
 		function getAllOrderPerBarcode() {
 			$sql = "SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 GROUP BY `barcode`";
 			$res = mysql_query($sql,$this->connection);

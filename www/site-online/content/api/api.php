@@ -2,7 +2,7 @@
 require_once ("../../objects/settings.php");
 require_once("../../objects/login.php");
 
-ini_set('max_execution_time', 300);
+ini_set('max_execution_time', 600);
 $OK = "ok";
 $FAIL = "fail";
 $ERROR = "error";
