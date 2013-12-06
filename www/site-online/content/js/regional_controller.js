@@ -509,7 +509,7 @@ regControl.storeListController = function (storeArray,totalItems) {
 	var ml='';
 	ml+= '<div class = "table-wrapper"><table class = "table" id = "store-list">';
 	ml+='</table></div>';
-	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	ml+='<div id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
 		regControl.drawStoreList(0);
@@ -524,7 +524,7 @@ regControl.orderListController = function (orderArray,totalItems) {
 	var ml='';
 	ml+= '<div class = "table-wrapper"><table class = "table" id = "order-list">';
 	ml+='</table></div>';
-	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	ml+='<div id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
 		regControl.drawOrderList(0);
@@ -538,7 +538,7 @@ regControl.shippedListController = function (shippedArray,totalItems) {
 	var ml='';
 	ml+= '<div class = "table-wrapper"><table class = "table" id = "shipped-list">';
 	ml+='</table></div>';
-	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	ml+='<div id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
 		regControl.drawShippedList(0);
@@ -553,7 +553,7 @@ regControl.pricingListController = function (pricingArray,totalItems) {
 	var ml='';
 	ml+= '<div class = "table-wrapper"><table class = "table" id = "pricing-list">';
 	ml+='</table></div>';
-	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	ml+='<div id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
 		regControl.drawPricingList(0);
