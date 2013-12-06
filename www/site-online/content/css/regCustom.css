@@ -157,46 +157,64 @@ margin-top: 10px;
 	margin-right:auto;
 	width:50%;
 	text-align:center;
-	
+	height: 30px;
+}
+.page-controller.active{
+	color: #fff;
+	cursor: default;
+	background-color: #428bca;
+	border-color: #428bca;
 }
 
-
 .page-controller {
-	padding: 2px;
-	margin: 2px;
-	text-shadow:2px 2px 10px #000000;
-	color: blue;
+	padding: 6px 12px;
+	margin-left: -1px;
+	line-height: 1.428571429;
+	text-decoration: none;
+	background-color: #fff;
+	border: 1px solid #ddd;
 }
 
 .page-controller:hover {
 	cursor:pointer;
-	color: lightblue;
+	color:white;
+	background-color: lightblue;
 	text-shadow:2px 2px 10px #FFFFFF;
 }
 
 .next-paging {
-	padding: 2px;
-	margin: 2px;
-	text-shadow:2px 2px 10px #000000;
-	color: blue;
+	padding: 6px 12px;
+	margin-left: -1px;
+	line-height: 1.428571429;
+	text-decoration: none;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
 }
 
 .next-paging:hover {
 	cursor:pointer;
-	color: lightblue;
+	color:white;
+	background-color: lightblue;
 	text-shadow:2px 2px 10px #FFFFFF;
 }
 
 .prev-paging {
-	padding: 2px;
-	margin: 2px;
-	text-shadow:2px 2px 10px #000000;
-	color: blue;
+	padding: 6px 12px;
+	margin-left: -1px;
+	line-height: 1.428571429;
+	text-decoration: none;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
 }
 
 .prev-paging:hover {
 	cursor:pointer;
-	color: lightblue;
+	color:white;
+	background-color: lightblue;
 	text-shadow:2px 2px 10px #FFFFFF;
 }
 

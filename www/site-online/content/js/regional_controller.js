@@ -494,7 +494,7 @@ regControl.productListController = function (prodArray,totalItems) {
 	var ml='';
 	ml+= '<div class = "table-wrapper"><table class = "table" id = "product-list">';
 	ml+='</table></div>';
-	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
+	ml+='<div id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
 		regControl.drawProductList(0);
@@ -574,30 +574,33 @@ regControl.pageController = function(pageCounter,drawFunction,apiCall,callback){
 				ml+='</div>';
 			}
 			ml+= '<div id="paging-'+(i/perPageLimit)+'" data-cur-paging = '+i/perPageLimit+' class = "page-scroller hidden">';
-			if (i > 0)
+			if (i > 0) {
 				ml+= '<span class = "prev-paging">Prev</span>';
+			}
 		}
 		ml+='<span class = "page-controller" data-page='+i+'>'+(i+1)+'</span>';
 	}
-	ml+='</div>';
+	
 	$("#main-page-controller").html(ml);
 	$("#paging-0").removeClass("hidden");
 	$(".next-paging").off().on("click",function(){
 		var nextPaging = $(this).parent().data("cur-paging")+1;
 		$(this).parent().addClass("hidden");
-		var offset = nextPaging*7;
+		var offset = nextPaging*70;
 		apiCall(offset,callback);
 		$("#paging-"+nextPaging).removeClass("hidden");
 	});
 	$(".prev-paging").off().on("click",function(){
 		var nextPaging = $(this).parent().data("cur-paging")-1;
 		$(this).parent().addClass("hidden");
-		var offset = nextPaging*7;
+		var offset = nextPaging*70;
 		apiCall(offset,callback);
 		$("#paging-"+nextPaging).removeClass("hidden");
 	});
 	$(".page-controller").off().on("click",function(){
 		var curPage =  $(this).data("page");
+		$(".active").removeClass("active");
+		$(this).addClass("active");
 		//regControl.drawProductList(curPage);
 		curPage = curPage%10;
 		drawFunction(curPage);
