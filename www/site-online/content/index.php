@@ -23,16 +23,16 @@
 			?>
 			<h5>Hi <?php echo $_SESSION['username']; ?> (<a href="logout.php">Logout</a>)</h5>
 			<div class="clearfix"></div>
-			<div class = "menu left">
-				<div class = "btn btn-primary btn-block" id="product-btn">Product List</div>
-				<div class = "btn btn-primary btn-block" id="store-btn">Store List</div>
-				<div class = "btn btn-primary btn-block" id="order-btn">Order List</div>
-				<div class = "btn btn-primary btn-block" id="shipment-btn">Shipment List</div>
-				<div class = "btn btn-primary btn-block" id="pricing-btn">Pricing Details</div>
-				<div class = "btn btn-default btn-block" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
-				<div class = "btn btn-inverse btn-block" id="finance-btn">Financial Report</div>
+			<div class = "menu">
+				<div class = "top-menu" id="product-btn">Product List</div>
+				<div class = "top-menu" id="store-btn">Store List</div>
+				<div class = "top-menu" id="order-btn">Order List</div>
+				<div class = "top-menu" id="shipment-btn">Shipment List</div>
+				<div class = "top-menu" id="pricing-btn">Pricing Details</div>
+				<div class = "top-menu" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
+				<div class = "top-menu" id="finance-btn">Financial Report</div>
 			</div>
-			<div class = "content right">
+			<div class = "content">
 				<input type = "text" id = "search-bar" placeholder="Search here" ></input>
 				<div class = "content-item" id= "content-container">
 				Please select one of the menu on the left.

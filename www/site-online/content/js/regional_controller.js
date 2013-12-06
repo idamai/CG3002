@@ -100,7 +100,7 @@ $(document).ready(function(){
 	$("#pricing-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
-		regControl.retrievePricingList(0,regControl._ret_pricing_list_cb);
+		regControl.retrievePricingList(0,regControl._retrieve_pricing_list_cb);
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
@@ -111,29 +111,35 @@ $(document).ready(function(){
 			$('#stock-list-container').html("");
 	});
 	$("#import-all-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.showOrderButtons();
 		regControl.api_call(	{action:"import_order_list"},
 								regControl._ret_order_list_cb,
 								null);
+		
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
 	});
-	$("#process-all-btn").off().on("click", function(){
+	$("#process-all-btn").off().on("click", function(){		
+		$("#loading-screen").removeClass("hidden");
 		regControl.api_call(	{action:"process_order_unprocessed"},
 								regControl._process_all_order_cb,
 								null);
 	});
 	$("#process-date-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.api_call(	{action:"populate_unprocessed_order_date"},
 								regControl._populate_unprocessed_order_date_cb,
 								null);
 	});
 	$("#process-barcode-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
 		regControl.api_call(	{action:"populate_unprocessed_order_barcode"},
 								regControl._populate_unprocessed_order_barcode_cb,
 								null);
 	});
 	$("#process-barcode-cfm").off().on("click",function(){
+		$("#loading-screen").removeClass("hidden");
 		var barcode;
 		barcode = $("#order-barcode-input-selection select").val();
 		regControl.api_call(	{action:"process_order_barcode", barcode:barcode},
@@ -149,6 +155,7 @@ $(document).ready(function(){
 		$("#order-barcode-input-selection").html("");		
 	});
 	$("#process-date-cfm").off().on("click",function(){
+		$("#loading-screen").removeClass("hidden");
 		var date;
 		date = $("#order-date-input-selection select").val();
 		regControl.api_call(	{action:"process_order_date", date:date},
@@ -485,8 +492,8 @@ regControl.productListController = function (prodArray,totalItems) {
 	regControl.buildProductPagedArray(prodArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
-	ml+= '<table class = "table" id = "product-list">';
-	ml+='</table>';
+	ml+= '<div class = "table-wrapper"><table class = "table" id = "product-list">';
+	ml+='</table></div>';
 	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
@@ -500,8 +507,8 @@ regControl.storeListController = function (storeArray,totalItems) {
 	regControl.buildStorePagedArray(storeArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
-	ml+= '<table class = "table" id = "store-list">';
-	ml+='</table>';
+	ml+= '<div class = "table-wrapper"><table class = "table" id = "store-list">';
+	ml+='</table></div>';
 	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
@@ -515,8 +522,8 @@ regControl.orderListController = function (orderArray,totalItems) {
 	regControl.buildOrderPagedArray(orderArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
-	ml+= '<table class = "table" id = "order-list">';
-	ml+='</table>';
+	ml+= '<div class = "table-wrapper"><table class = "table" id = "order-list">';
+	ml+='</table></div>';
 	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
@@ -529,8 +536,8 @@ regControl.shippedListController = function (shippedArray,totalItems) {
 	regControl.buildShippedPagedArray(shippedArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
-	ml+= '<table class = "table" id = "shipped-list">';
-	ml+='</table>';
+	ml+= '<div class = "table-wrapper"><table class = "table" id = "shipped-list">';
+	ml+='</table></div>';
 	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)
@@ -544,8 +551,8 @@ regControl.pricingListController = function (pricingArray,totalItems) {
 	regControl.buildPricingPagedArray(pricingArray);
 	var pageCounter = Math.ceil(totalItems/7);
 	var ml='';
-	ml+= '<table class = "table" id = "pricing-list">';
-	ml+='</table>';
+	ml+= '<div class = "table-wrapper"><table class = "table" id = "pricing-list">';
+	ml+='</table></div>';
 	ml+='<div class = "page-controller" id = "main-page-controller"></div>';
 	$('#content-container').html(ml);
 	if (regControl.mlArrayPaged.length>=1)

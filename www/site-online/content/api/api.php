@@ -2,7 +2,7 @@
 require_once ("../../objects/settings.php");
 require_once("../../objects/login.php");
 
-
+ini_set('max_execution_time', 300);
 $OK = "ok";
 $FAIL = "fail";
 $ERROR = "error";
@@ -239,6 +239,7 @@ try{
 			$retArr["leftover_order"] = true;
 		else
 			$retArr["leftover_order"] = false;
+		$pc->updatePricing($availableStocks);
 		$retArr["status"] = $OK;
 		break;
 		break;
@@ -268,7 +269,7 @@ try{
 		//BUGFIX : call after update pricing
 		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
 		
-		$retArr["result"] = $oc->getAllUnprocessedOrder();
+		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
@@ -295,7 +296,7 @@ try{
 		$pc  = new PricingController($conn);
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
-		$retArr["result"] = $oc->getAllUnprocessedOrder();
+		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
@@ -369,7 +370,7 @@ try{
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
 		$retArr["total"] = $pc->retrieveTotalPricing();
-		$retArr["result"] = $pc->retrievePricingList();
+		$retArr["result"] = $pc->retrievePricingList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "read_order":
@@ -441,7 +442,7 @@ try{
 				}
 				break;
 			case $ACTIVE_SHIPPED:
-				$sql = "SELECT * FROM `product_shipped` WHERE  `barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%' LIMIT 70";
+				$sql = "SELECT * FROM `product_shipped` WHERE  `processed` = 1 AND (`barcode` LIKE '%$key%' OR `date` LIKE '%$key%' OR `store_id` LIKE '%$key%' OR `quantity` LIKE '%$key%' ) LIMIT 70";
 				$res = mysql_query($sql,$conn);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				$rows = mysql_num_rows($res);

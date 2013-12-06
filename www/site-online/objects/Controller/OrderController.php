@@ -79,11 +79,11 @@
 			$response = array();
 			$date = mysql_real_escape_string($date);
 			
-			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_order` WHERE ';
+			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_shipped` WHERE ';
 			if (($date != null)&&($date!= "")){
 				$sql.='date = "'.$date.'" AND ';
 			}
-			$sql.='`processed` = 1';
+			$sql.='`processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -108,6 +108,10 @@
 				}*/
 			}
 			//retreive and send updated product list 
+			$sql = 'UPDATE `product_shipped` SET `processed` = 1 WHERE `processed` = 0';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			
 			$sql = 'SELECT p.`barcode`, p.`name`, p.`category`, p.`manufacturer`, (p.`cost` * pm.`margin_multiplier`) AS `costprice`, `deleted` FROM `product` p INNER JOIN `price_modifier` pm ON pm.`barcode` = p.`barcode`';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -223,7 +227,7 @@
 			return $retArr;
 		}
 		function retreiveTotalShippedOrder(){
-			$sql = "SELECT COUNT(*) AS `total` FROM `product_shipped`";
+			$sql = "SELECT COUNT(*) AS `total` FROM `product_shipped` WHERE `processed` = 1";
 			$res = mysql_query($sql, $this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$totalItems =  mysql_result($res,0,'total');
@@ -231,7 +235,7 @@
 		}
 		function getAllShippedOrder($offset) {
 			$offset = mysql_real_escape_string($offset);
-			$sql = "SELECT * FROM `product_shipped` LIMIT 70 OFFSET ".$offset;
+			$sql = "SELECT * FROM `product_shipped` WHERE `processed` = 1 LIMIT 70 OFFSET ".$offset;
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
