@@ -13,14 +13,18 @@
 					FROM
 						`product_sales`
 					WHERE 
-						YEAR(`date`) >= YEAR(CURRENT_DATE - INTERVAL 12 MONTH) AND MONTH(`date`) >= MONTH(CURRENT_DATE - INTERVAL 12 MONTH) AND `barcode` = ".$barcode."
+						`barcode` = ".$barcode."
 					GROUP BY
 						YEAR(`date`), MONTH(`date`)";
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());			
 			$rows = mysql_num_rows($res);
-			for ($i = 0; $i < $rows; $i++){				
-				$performance[$i]= array(		"year" => mysql_result($res,$i,'year'),
+			$adjuster =0;
+			if ($rows>=13) {
+				$adjuster = $rows-12;
+			}
+			for ($i = $adjuster; $i < $rows; $i++){				
+				$performance[$i-$adjuster]= array(		"year" => mysql_result($res,$i,'year'),
 												"month" => mysql_result($res,$i,'month'),
 												"sales" => mysql_result($res,$i,'sales')
 											);

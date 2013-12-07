@@ -52,9 +52,11 @@ regControl.performanceMetrics.drawProductChart = function(performanceMetrics) {
 		arrayOfData[0] = ['Month', 'Sales'];
 		arrayOfData[1] = new Array();
 		arrayOfData[1] = ['01/01', 0];
-		for (var i = 0; i < performanceMetrics.length; i++) {
-			arrayOfData[i+2] = new Array();
-			arrayOfData[i+2] = [performanceMetrics[i].month+"/"+performanceMetrics[i].year, +performanceMetrics[i].sales];
+		if (performanceMetrics!=null) {
+			for (var i = 0; i < performanceMetrics.length; i++) {
+				arrayOfData[i+2] = new Array();
+				arrayOfData[i+2] = [performanceMetrics[i].month+"/"+performanceMetrics[i].year, +performanceMetrics[i].sales];
+			}
 		}
         var data = google.visualization.arrayToDataTable(arrayOfData);
 
