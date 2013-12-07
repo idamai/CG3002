@@ -47,7 +47,7 @@
 
 		function readJson()
 		{
-			$query = mysql_query("SELECT id,deleted FROM local_stores",$this->connection);
+			$query = mysql_query("SELECT id,deleted FROM local_stores WHERE id != 0",$this->connection);
 			date_default_timezone_set("Asia/Singapore");
 			$date = date('Y-m-d');
 			while($row = mysql_fetch_array($query))
@@ -68,6 +68,7 @@
 						}
 						mysql_query("INSERT INTO product_sales(barcode, date, store_id, sales, writeoff) VALUES ('$barcode', '$date', '$shop_id', '$sales', '$writeoff')",$this->connection);
 					}
+					unlink('receive/'.$shop_id.'.json');
 				}
 			}
 		}
@@ -76,7 +77,8 @@
 		function processShipment($processedOrder,$date)
 		{
 			$posts = array();
-			$response = array();
+			$responseShipment = array();
+			$responseProductUpdate = array();
 			$date = mysql_real_escape_string($date);
 			
 			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_shipped` WHERE ';
@@ -108,20 +110,6 @@
 				}*/
 			}
 			//retreive and send updated product list 
-			//webstore is always store 0, thus this store is special and will only receive the total amount of stocks in the system
-			$sql = 'SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` GROUP BY `barcode`';
-			$res = mysql_query($sql,$this->connection);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			$rows = mysql_num_rows($res);
-			for ($j = 0 ; $j < $rows ; $j++)
-			{
-				$barcode = mysql_result($res,$j,'barcode');
-				$quantity = mysql_result($res,$j,'stock');
-					$shipment[0][] = array( 
-												'barcode' => $barcode,
-												'quantity' => $this->encrypt($quantity)
-												);
-			}
 			$sql = 'UPDATE `product_shipped` SET  `processed` = 1 WHERE `processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -141,7 +129,7 @@
 											"deleted" => mysql_result($res,$j,'deleted')
 											);
 			}
-			$sql = 'SELECT `id`, `password` FROM `local_stores` WHERE `deleted` = 0';
+			$sql = 'SELECT `id`, `password` FROM `local_stores` WHERE `id` != 0 AND `deleted` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			$rows = mysql_num_rows($res);
@@ -151,19 +139,17 @@
 			}
 			foreach ($shipment as $store => $barcodeShipped){
 				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
-				$response['shipment_list'] = $barcodeShipped;
-				$response['product_list'] = $productList;
+				$responseShipment['shipment_list'] = $barcodeShipped;
+				$responseProductUpdate['product_list'] = $productList;
 				$fp = fopen($filename, 'w');
-				fwrite($fp, json_encode($response['shipment_list']));				
+				fwrite($fp, json_encode($responseShipment));				
 				fclose($fp);
-				foreach ($response['product_list'] as $index => $product){
+				foreach ($responseProductUpdate['product_list'] as $index => $product){
 					$fp = fopen($filename, 'a');
 					fwrite($fp, json_encode($product));				
 					fclose($fp);
 				}
 			}	
-			
-			//name file by shop id from settings file
 		}
 
 		function retreiveTotalShippedOrder(){

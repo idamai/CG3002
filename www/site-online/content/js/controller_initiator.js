@@ -57,6 +57,14 @@ $(document).ready(function(){
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
 	});
+	$("#webstore-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
+		regControl.hideOrderButtons();
+		regControl.webStore.init();
+		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_METRICS;
+	});
 	$("#analytics-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();

@@ -11,6 +11,7 @@
 		<script type="text/javascript" src="js/regional_controller.js"></script>
 		<script type="text/javascript" src="js/core_controller.js"></script>
 		<script type="text/javascript" src="js/metrics_controller.js"></script>
+		<script type="text/javascript" src="js/ws_controller.js"></script>
 		<script type="text/javascript" src="js/controller_initiator.js"></script>
 	</head>
 	<body>
@@ -19,7 +20,7 @@
 		</div>
 		<div class = "container">
 			<div class = "hero-unit">
-				<h2>HyperMarket - Regional Server</h2>
+				<h2><img src="img/logowhite.png" width="200" height="20"><span> - Headquarter Server</span></h2>
 			</div>
 			<?php
 				if (isset($_SESSION['username'])) {
@@ -32,6 +33,7 @@
 				<div class = "top-menu" id="order-btn">Order List</div>
 				<div class = "top-menu" id="shipment-btn">Shipment List</div>
 				<div class = "top-menu" id="pricing-btn">Pricing Details</div>
+				<div class = "top-menu" id="webstore-btn">WebStore Manager</div>
 				<div class = "top-menu" id="sales-btn" onclick="window.open('/api/sales.php?store=&date=&page=1','mywindow');" style="cursor: hand;">Sales Data</div>
 				<div class = "top-menu" id="finance-btn">Financial Report</div>
 				<div class = "top-menu" id="analytics-btn">Performance Metrics</div>

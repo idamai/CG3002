@@ -47,11 +47,15 @@
 
 .top-menu {
 	border-radius: 5px;
-	padding-left: 25px;
-	padding-right: 25px;
+	padding-left: 15px;
+	padding-right: 15px;
 	padding-top: 10px;
 	padding-bottom:10px;
 	display: inline-block;
+}
+
+.hero-unit h2 span{
+	vertical-align:middle;
 }
 .top-menu:hover {
 	background-color:#3a96d9;

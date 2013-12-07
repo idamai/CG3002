@@ -390,6 +390,20 @@ try{
 		$retArr["result"] = $plc->retrieveAllBarcode();
 		$retArr["status"] = $OK;
 		break;
+	case "webstore_import_request":
+		//grab the total number of orders per barcode
+		require_once("../../objects/Controller/WebStoreController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		$wsc = new WebStoreController($conn);
+		$wc = new WarehouseController($conn);
+		
+		$toBeShipped = $wsc->retrieveWebStoreOrders();
+		//grab the total available stocks per barcode
+		
+		//webstore assumption all of the products are readily available and ready to send 
+		$wsc->processToBeShipped($toBeShipped);
+		$retArr["status"] = $OK;
+		break;
 	case "search_data_base":
 		$key = $p["key"];
 		$key = mysql_real_escape_string($key);
