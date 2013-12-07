@@ -126,7 +126,7 @@
 			<table>
 				<tr>
 					<td>Barcode</td>
-					<td><input type = "number" id = "new-product-barcode"></input></td>
+					<td><input type = "number" id = "new-product-barcode" min="10000000" max="99999999"></input></td>
 				</tr>
 				<tr>
 					<td>Name</td>
