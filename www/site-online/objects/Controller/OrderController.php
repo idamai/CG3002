@@ -72,19 +72,22 @@
 				}
 			}
 		}
-
-
-		function processShipment($processedOrder,$date)
-		{
-			$posts = array();
-			$responseShipment = array();
-			$responseProductUpdate = array();
+		
+		function manualAddOrder($barcode,$date,$store_id,$quantity) {
+			$barcode = mysql_real_escape_string($barcode);
 			$date = mysql_real_escape_string($date);
+			$store_id = mysql_real_escape_string($store_id);
+			$quantity = mysql_real_escape_string($quantity);
+			$sql = "INSERT INTO `product_order` (`barcode`, `date`, `store_id`, `quantity`, `processed`) VALUES ( ".$barcode." , '".$date."' , ".$store_id." , ".$quantity." , 0 )";
+			$res = mysql_query($sql, $this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+		}
+
+		function processShipment(){
+			$posts = array();
+			$response = array();
 			
 			$sql = 'SELECT `barcode`,`quantity`, `store_id` FROM `product_shipped` WHERE ';
-			if (($date != null)&&($date!= "")){
-				$sql.='date = "'.$date.'" AND ';
-			}
 			$sql.='`processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -95,19 +98,10 @@
 				$store_id = mysql_result($res,$j,'store_id');
 				$barcode = mysql_result($res,$j,'barcode');
 				$quantity = mysql_result($res,$j,'quantity');
-				/*if ((!($shipment[$store_id]==null))&&(count($shipment[$store_id]==null) > 0)){
-					//$shipment[$store_id][$barcode] = $quantity;
-				*/
 					$shipment[$store_id][] = array( 
 												'barcode' => $barcode,
 												'quantity' => $this->encrypt($quantity)
 												);
-				/*} else {
-					$shipment[$store_id] = array();
-					//$shipment[$store_id][$barcode] = $quantity;
-					$shipment[$store_id]['barcode'] = $barcode;
-					$shipment[$store_id]['quantity'] = $quantity;
-				}*/
 			}
 			//retreive and send updated product list 
 			$sql = 'UPDATE `product_shipped` SET  `processed` = 1 WHERE `processed` = 0';
@@ -139,16 +133,34 @@
 			}
 			foreach ($shipment as $store => $barcodeShipped){
 				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
-				$responseShipment['shipment_list'] = $barcodeShipped;
-				$responseProductUpdate['product_list'] = $productList;
+				$response['shipment_list'] = $barcodeShipped;
+				$response['product_list'] = $productList;
 				$fp = fopen($filename, 'w');
-				fwrite($fp, json_encode($responseShipment));				
+				//fwrite($fp, $response);
+				//print_r($response);
+				fwrite($fp, '{"shipment_list":[');				
 				fclose($fp);
-				foreach ($responseProductUpdate['product_list'] as $index => $product){
-					$fp = fopen($filename, 'a');
-					fwrite($fp, json_encode($product));				
-					fclose($fp);
+				$fp = fopen($filename, 'a');
+				$max_length = count ($response['shipment_list']);
+				$counter = 0;
+				foreach ($response['shipment_list'] as $index => $shipment){
+					fwrite($fp, json_encode($shipment));
+					if ($counter!= $max_length-1)
+						fwrite($fp, ',');
+					$counter++;
 				}
+				fwrite($fp,'],"product_list":[');
+				$max_length = count ($response['product_list']);
+				$counter = 0;
+				foreach ($response['product_list'] as $index => $product){
+					fwrite($fp, json_encode($product));
+					if ($counter!= $max_length-1)
+						fwrite($fp, ',');
+					else
+						fwrite($fp, ']}');					
+					$counter++;
+				}
+				fclose($fp);
 			}	
 		}
 
@@ -329,7 +341,6 @@
 					
 					$res = mysql_query($sql,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());
-					$this->processShipment($canBeProcessed,$date);
 			}
 		}
 

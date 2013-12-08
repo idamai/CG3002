@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `product_shipped` (
 	`date` DATE,
 	`store_id` INT UNSIGNED,
 	`quantity` INT,
+	`proceessed` INT,
 	PRIMARY KEY (`barcode`,`date`,`store_id`),
 	FOREIGN KEY (`barcode`) REFERENCES `product`(`barcode`),
 	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)
@@ -65,13 +66,15 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	PRIMARY KEY (`code`)
 )   ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
-CREATE TABLE IF NOT EXISTS `balance_sheet` (
-	`code` INT UNSIGNED,
-	`date` DATE NOT NULL,
-	`amount` NUMERIC(10,2),
-	PRIMARY KEY (`code`),
-	FOREIGN KEY (`code`) REFERENCES `accounts`(`code`)
-)   ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+create table if not exists `balance_sheet` (
+	`date` DATE,
+	`account` INT(10) UNSIGNED,
+	`store_id` INT(10) UNSIGNED,
+	`amount` DECIMAL(10,2) NOT NULL,
+	PRIMARY KEY(`date`,`account`,`store_id`),
+	FOREIGN KEY (`account`) REFERENCES `accounts`(`code`),
+	FOREIGN KEY (`store_id`) REFERENCES `local_stores`(`id`)
+) ENGINE  = InnoDB CHARACTER SET=utf8;
 
 CREATE TABLE IF NOT EXISTS `admin` (
 	`username` VARCHAR(255),

@@ -57,13 +57,21 @@ $(document).ready(function(){
 		regControl.hideAddStoreButton();
 		regControl.currentActive = regControl.constants.ACTIVE_SHIPMENT;
 	});
+	$("#finance-btn").off().on("click", function(){
+		$("#loading-screen").removeClass("hidden");
+		regControl.hideOrderButtons();
+		regControl.financialReport.init();
+		regControl.hideAddProductButton();
+		regControl.hideAddStoreButton();
+		regControl.currentActive = regControl.constants.ACTIVE_FR;
+	});
 	$("#webstore-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");
 		regControl.hideOrderButtons();
 		regControl.webStore.init();
 		regControl.hideAddProductButton();
 		regControl.hideAddStoreButton();
-		regControl.currentActive = regControl.constants.ACTIVE_METRICS;
+		regControl.currentActive = regControl.constants.ACTIVE_WS;
 	});
 	$("#analytics-btn").off().on("click", function(){
 		$("#loading-screen").removeClass("hidden");

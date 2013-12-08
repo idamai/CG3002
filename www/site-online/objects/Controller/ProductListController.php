@@ -46,7 +46,7 @@
 		
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			
-			$sql = 'INSERT INTO `price_modifier` (`barcode` , `margin_multiplier`, `tax`) VALUES ( '.$barcode.' , 1.25 , 7 )';
+			$sql = 'INSERT INTO `price_modifier` (`barcode` , `margin_multiplier`, `tax` , `q_star` , `update_date` ) VALUES ( '.$barcode.' , 1.25 , 7 , '.($minimal_stock*5).' , CURDATE() )';
 			$res = mysql_query($sql,$this->connection);
 			
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());

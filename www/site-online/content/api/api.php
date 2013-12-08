@@ -64,7 +64,10 @@ try{
 		$retArr["status"] = $OK;
 		break;
 	case "add_new_product":
-		require_once("../../objects/Controller/ProductListController.php");
+		require_once("../../objects/Controller/ProductListController.php");		
+		require_once("../../objects/Controller/StoreListController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		require_once("../../objects/Controller/OrderController.php");
 		$barcode = $p["barcode"];
 		$name = $p["name"];
 		$category = $p["category"];
@@ -72,7 +75,14 @@ try{
 		$cost = $p["cost"];
 		$minimal_stock = $p["minimal_stock"];
 		$plc = new ProductListController($conn);
-		$plc->addNewProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);
+		$slc = new StoreListController($conn);
+		$wc = new WarehouseController($conn);
+		$oc = new OrderController($conn);
+		$plc->addNewProduct($barcode, $name, $category, $manufacturer, $cost, $minimal_stock);		
+		$wc->addNewStock($barcode, $minimal_stock, date('Y-m-d'));
+		$storeList = $slc->retrieveStoreID();
+		foreach($storeList as $index => $store)
+			$oc->manualAddOrder($barcode,date('Y-m-d'),$store['store_id'],($minimal_stock/count($storeList)));
 		$retArr["total"] = $plc->retrieveTotalProducts();
 		$retArr["result"] = $plc->retrieveProductList(0);
 		$retArr["status"] = $OK;
@@ -213,8 +223,11 @@ try{
 	case "process_order_date":
 		require_once("../../objects/Controller/OrderController.php");
 		require_once("../../objects/Controller/WarehouseController.php");
+		require_once("../../objects/Controller/PricingController.php");		
+				
 		$oc = new OrderController($conn);
 		$wc = new WarehouseController($conn);
+		$pc  = new PricingController($conn);
 		
 		$date = date('Y-m-d',strtotime($p["date"]));
 		
@@ -228,9 +241,10 @@ try{
 		//process the sufficient stocks
 		$oc->processOrder($processableList["canBeProcessed"],$date);
 		
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
+		$oc->processShipment();
 		
-		require_once("../../objects/Controller/PricingController.php");		
-		$pc  = new PricingController($conn);
 		
 		
 		$retArr["result"] = $oc->getAllUnprocessedOrder();
@@ -262,13 +276,13 @@ try{
 		//leave the not processed barcode
 		
 		require_once("../../objects/Controller/PricingController.php");		
-		$pc  = new PricingController($conn);
+		$pc  = new PricingController($conn);		
 		
-		$availableStocks = $wc->retrieveTotalProductStock();
-		$pc->updatePricing($availableStocks);
 		//BUGFIX : call after update pricing
 		$oc->processOrder($processableList["canBeProcessed"],null,$conn);
-		
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
+		$oc->processShipment();
 		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
@@ -279,10 +293,11 @@ try{
 		break;
 	case "process_order_barcode":
 		require_once("../../objects/Controller/OrderController.php");
-		require_once("../../objects/Controller/WarehouseController.php");
+		require_once("../../objects/Controller/WarehouseController.php");		
+		require_once("../../objects/Controller/PricingController.php");	
 		$oc = new OrderController($conn);
-		$wc = new WarehouseController($conn);
-		
+		$wc = new WarehouseController($conn);		
+		$pc  = new PricingController($conn);
 		$barcode = $p["barcode"];
 		$toBeOrdered = $oc->getAllOrderForBarcode($barcode);
 		//grab the total available stocks per barcode
@@ -291,9 +306,7 @@ try{
 		//check whether all of the stocks are sufficient
 		$processableList = $oc->checkProcessableOrder($availableBarcode, $toBeOrdered);		
 		//process the sufficient stocks
-		$oc->processOrder($processableList["canBeProcessed"],null);
-		require_once("../../objects/Controller/PricingController.php");		
-		$pc  = new PricingController($conn);
+		$oc->processOrder($processableList["canBeProcessed"],null);	
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
 		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
@@ -394,14 +407,26 @@ try{
 		//grab the total number of orders per barcode
 		require_once("../../objects/Controller/WebStoreController.php");
 		require_once("../../objects/Controller/WarehouseController.php");
+		require_once("../../objects/Controller/PricingController.php");	
 		$wsc = new WebStoreController($conn);
 		$wc = new WarehouseController($conn);
+		$pc  = new PricingController($conn);
 		
 		$toBeShipped = $wsc->retrieveWebStoreOrders();
 		//grab the total available stocks per barcode
 		
 		//webstore assumption all of the products are readily available and ready to send 
 		$wsc->processToBeShipped($toBeShipped);
+		$availableStocks = $wc->retrieveTotalProductStock();
+		$pc->updatePricing($availableStocks);
+		$wsc->sendStatistics();
+		$retArr["status"] = $OK;
+		break;
+	case "retrieve_financial_report":
+		//grab the total number of orders per barcode
+		require_once("../../objects/Controller/FinancialReportController.php");
+		$frc  = new FinancialReportController($conn);		
+		$retArr["result"] = $frc->generateReport();
 		$retArr["status"] = $OK;
 		break;
 	case "search_data_base":

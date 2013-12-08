@@ -31,6 +31,8 @@ regControl.constants = {   OK : "ok",
 						   ACTIVE_ORDER : "order-list",
 						   ACTIVE_SHIPPED : "shipped-list",
 						   ACTIVE_PRICING : "price-list",
+						   ACTIVE_FR : "fr-list",
+						   ACTIVE_WS : "ws-list",
 						   ACTIVE_METRICS : "performance-metrics"};
 						   
 regControl.currentActive;						   

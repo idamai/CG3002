@@ -88,7 +88,6 @@
 					$res = mysql_query($sql_shipped,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());	
 			}
-			$this->sendStatistics();
 		}
 		
 		function processBarcodeShipment( $barcode, $quantity){
@@ -124,8 +123,7 @@
 		
 		function sendStatistics(){
 			$posts = array();
-			$responseStats = array();
-			$responseProductUpdate = array();
+			$response = array();
 			
 			//webstore is always store 0, thus this store is special and will only receive the total amount of stocks in the system
 			$sql = 'SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` GROUP BY `barcode`';
@@ -154,11 +152,11 @@
 			for ($j = 0 ; $j < $rows ; $j++){
 				$productList[$j] = array(	
 											"barcode" => mysql_result($res,$j,'barcode'),
-											"name" => mysql_result($res,$j,'name'),
-											"category" => mysql_result($res,$j,'category'),
-											"manufacturer" => mysql_result($res,$j,'manufacturer'),
+											"name" =>  $this->encrypt(mysql_result($res,$j,'name')),
+											"category" =>  $this->encrypt(mysql_result($res,$j,'category')),
+											"manufacturer" =>  $this->encrypt(mysql_result($res,$j,'manufacturer')),
 											"costprice" => $this->encrypt(mysql_result($res,$j,'costprice')),
-											"deleted" => mysql_result($res,$j,'deleted')
+											"deleted" =>  $this->encrypt(mysql_result($res,$j,'deleted'))
 											);
 			}
 			$sql = 'SELECT `id`, `password` FROM `local_stores` WHERE `id` = 0 AND `deleted` = 0';
@@ -168,16 +166,34 @@
 			$passwords[mysql_result($res,0,'id')] = mysql_result($res,0,'password');
 			foreach ($shipment as $store => $barcodeShipped){
 				$filename = 'download/'.$store.'-'.$passwords[$store].'.json';
-				$responseStats['shipment_list'] = $barcodeShipped;
-				$responseProductUpdate['product_list'] = $productList;
+				$response['shipment_list'] = $barcodeShipped;
+				$response['product_list'] = $productList;
 				$fp = fopen($filename, 'w');
-				fwrite($fp, json_encode($responseStats));				
+				//fwrite($fp, $response);
+				//print_r($response);
+				fwrite($fp, '{"shipment_list":[');				
 				fclose($fp);
-				foreach ($responseProductUpdate['product_list'] as $index => $product){
-					$fp = fopen($filename, 'a');
-					fwrite($fp, json_encode($product));				
-					fclose($fp);
+				$fp = fopen($filename, 'a');
+				$max_length = count ($response['shipment_list']);
+				$counter = 0;
+				foreach ($response['shipment_list'] as $index => $shipment){
+					fwrite($fp, json_encode($shipment));
+					if ($counter!= $max_length-1)
+						fwrite($fp, ',');
+					$counter++;
 				}
+				fwrite($fp,'],"product_list":[');
+				$max_length = count ($response['product_list']);
+				$counter = 0;
+				foreach ($response['product_list'] as $index => $product){
+					fwrite($fp, json_encode($product));
+					if ($counter!= $max_length-1)
+						fwrite($fp, ',');
+					else
+						fwrite($fp, ']}');					
+					$counter++;
+				}
+				fclose($fp);
 			}	
 		}
 		

@@ -30,11 +30,29 @@
 			return $storeList;
 		}
 		
+		function retrieveStoreID() {
+			$sql = "SELECT `id`,`name`,`location` FROM `local_stores` WHERE `deleted` = 0 AND `id`!= 0";
+			$res = mysql_query($sql,$this->connection);
+			
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$storeList =  array();
+			for ($j = 0 ; $j < $rows ; $j++)
+			{
+				$storeList[$j] = array(
+												"store_id" => mysql_result($res,$j,'id'),
+												"store_name" => mysql_result($res,$j,'name'),
+												"store_loc" => mysql_result($res,$j,'location')
+											);		
+			}
+			return $storeList;
+		}
+		
 		function addNewStore($store_id, $name, $location, $password){
 			$store_id = mysql_real_escape_string($store_id);
 			$name = mysql_real_escape_string($name);
 			$location = mysql_real_escape_string($location);
-			$password = SHA1($password);
+			$password = MD5($password);
 			$sql = 'INSERT INTO `local_stores` (`id` , `name`, `location`, `password` ) VALUES ( '.$store_id.' , "'.$name. '" , "'.$location.'" , "'.$password.'" )';
 			$res = mysql_query($sql,$this->connection);
 		

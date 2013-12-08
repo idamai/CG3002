@@ -12,6 +12,7 @@
 		<script type="text/javascript" src="js/core_controller.js"></script>
 		<script type="text/javascript" src="js/metrics_controller.js"></script>
 		<script type="text/javascript" src="js/ws_controller.js"></script>
+		<script type="text/javascript" src="js/financialreport_controller.js"></script>
 		<script type="text/javascript" src="js/controller_initiator.js"></script>
 	</head>
 	<body>
