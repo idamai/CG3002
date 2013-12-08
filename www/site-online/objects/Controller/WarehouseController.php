@@ -53,7 +53,7 @@
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				while($rows = mysql_fetch_array($res)) {
 					if(($data['fullstock'] - $rows['holding']) > 0) {
-						$sql2 = "INSERT INTO `warehouse` (`barcode`, `batchdate`, `stock` )VALUES (".$data['barcode'].",CURDATE(),".($full-$rows[0]).")" ;
+						$sql2 = "INSERT INTO `warehouse` (`barcode`, `batchdate`, `stock` )VALUES (".$data['barcode'].",2013-11-20,".($full-$rows[0]).")" ;
 						mysql_query($sql2,$this->connection);
 						$sql3 = "UPDATE `price_modifier` SET `update_date` = CURDATE() WHERE `barcode` = ".$data['barcode'] ;
 						mysql_query($sql3,$this->connection);

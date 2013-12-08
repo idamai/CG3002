@@ -51,26 +51,43 @@
 			$orderList = array();
 			$i=0;
 			//Webstore does not have writeoff
-			foreach($json['products'] as $data)
-			{
-				$barcode = $data['barcode'];
-				$quantity = $this->decrypt($data['quantity']);
-				$sales = $this->decrypt($data['sales']);
-				if($quantity>0) {
-					$orderList[$i] = array(
-						"barcode" => $barcode,
-						"date" => date("Y-m-d"),
-						"store_id" => 0,
-						"quantity" => $quantity
-					);
+			if($json!=null){
+				foreach($json['products'] as $data)
+				{
+					$barcode = $data['barcode'];
+					$quantity = $this->decrypt($data['quantity']);				
+					if($quantity>0) {
+						$orderList[$i] = array(
+							"barcode" => $barcode,
+							"date" => date("Y-m-d"),
+							"store_id" => 0,
+							"quantity" => $quantity
+						);
+						$i++;
+					}
+					mysql_query("INSERT INTO product_sales(barcode, date, store_id, sales, writeoff) VALUES ('$barcode', '$date', '$shop_id', '$quantity', 0)",$this->connection);
 				}
-				mysql_query("INSERT INTO product_sales(barcode, date, store_id, sales, writeoff) VALUES ('$barcode', '$date', '$shop_id', '$sales', 0)",$this->connection);
+				$revenue = $this->decrypt($json['total']);
+				$sql= "SELECT * FROM `balance_sheet` WHERE `date` = CURDATE() AND `account` = 601 AND `store_id` = 0";
+				$res = mysql_query($sql,$this->connection);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				if  ($rows == 0) {
+					$sql = "INSERT INTO `balance_sheet` ( `date` , `account` , `store_id` , `amount` ) VALUES ( CURDATE() , 601, 0 , ".$revenue." )";
+					$res = mysql_query($sql,$this->connection);
+					if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				} else {
+					$sql = "UPDATE `balance_sheet` SET `amount` = `amount` + ".$revenue." WHERE `store_id` = 0 AND `account` = 601 AND `date` = CURDATE()";
+					$res = mysql_query($sql,$this->connection);
+					if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				}
+				unlink('receive/'.$shop_id.'.json');
 			}
-			unlink('receive/'.$shop_id.'.json');
+			return $orderList;
 		}
 		
 		function retrieveWebStoreOrders() {
-			$toBeShipped = $this->readJson;
+			$toBeShipped = $this->readJson();
 			return $toBeShipped;
 		}
 		//assumption the warehouse always have enough stock for webstore
@@ -78,7 +95,7 @@
 			if (count($toBeShipped) > 0) {
 					$sql_shipped = "INSERT INTO `product_shipped` (`barcode`, `date`, `store_id`, `quantity`) VALUES ";
 					for ($j = 0; $j < count($toBeShipped); $j++) {
-						$this->processBarcodeOrder($toBeShipped[$j]["barcode"],$toBeShipped[$j]["quantity"]);
+						$this->processBarcodeShipment($toBeShipped[$j]["barcode"],$toBeShipped[$j]["quantity"]);
 						$sql_shipped.='( '.$toBeShipped[$j]["barcode"].' , CURDATE() , 0 , '.$toBeShipped[$j]["quantity"].' ) ';
 						if ($j< count($toBeShipped)-1) {
 							$sql_shipped.=" , ";
@@ -119,14 +136,23 @@
 				$res = mysql_query($sql,$this->connection);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				$rows = mysql_num_rows($res);
-				$profit = 0;
+				$revenue = 0;
 				if  ($rows == 0) {
-					$profit = 0 - $totalCost;
-				} else {
+					$revenue = 0;
+				} else {					
 					$revenue = mysql_result($res,0,'amount');
-					$profit = $revenue - $totalCost;
 				}
-				
+				$sql= "SELECT * FROM `balance_sheet` WHERE `date` = CURDATE() AND `account` = 701 AND `store_id` = 0";
+				$res = mysql_query($sql,$this->connection);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$totalCost = 0;
+				if  ($rows == 0) {
+					$totalCost = 0;
+				} else {					
+					$totalCost = mysql_result($res,0,'amount');
+				}
+				$profit = $revenue - $totalCost;
 				$sql= "SELECT * FROM `balance_sheet` WHERE `date` = CURDATE() AND `account` = 801 AND `store_id` = 0";
 				$res = mysql_query($sql,$this->connection);
 				if (!$res) throw new Exception("Database access failed: " . mysql_error());
@@ -136,7 +162,7 @@
 					$res = mysql_query($sql,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				} else {
-					$sql = "UPDATE `balance_sheet` SET `amount` = `amount` + ".$profit." WHERE `store_id` = 0 AND `account` = 801 AND `date` = CURDATE()";
+					$sql = "UPDATE `balance_sheet` SET `amount` = ".$profit." WHERE `store_id` = 0 AND `account` = 801 AND `date` = CURDATE()";
 					$res = mysql_query($sql,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				}

@@ -159,7 +159,7 @@ try{
 		$oc = new OrderController($conn);
 		$oc->readJson();
 		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
-		$retArr["result"] =  $oc->getAllUnprocessedOrder($offset);
+		$retArr["result"] =  $oc->getAllUnprocessedOrder(0);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_shipped_list":
