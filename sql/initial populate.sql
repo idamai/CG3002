@@ -9,7 +9,7 @@ INSERT INTO `local_stores` VALUES
 (1,"Bedok 1101", "Bedok Street 1920", MD5("helloworld"),0),
 (2,"Changi Expo", "Changi Lane 5", MD5("helloworld"),0);
 
-INSERT INTO `admin` VALUES ("admin",SHA1("iamsexy#1"));
+INSERT INTO `admin` VALUES ("admin",MD5("iamsexy#1"));
 
 INSERT INTO `product_order` VALUES
 (23418003,"2013-09-30",1,100,1),

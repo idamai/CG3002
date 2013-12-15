@@ -246,8 +246,8 @@ try{
 		$oc->processShipment();
 		
 		
-		
-		$retArr["result"] = $oc->getAllUnprocessedOrder();
+		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
+		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
 			$retArr["leftover_order"] = true;
@@ -283,6 +283,7 @@ try{
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
 		$oc->processShipment();
+		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
 		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
@@ -309,6 +310,7 @@ try{
 		$oc->processOrder($processableList["canBeProcessed"],null);	
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
+		$retArr["total"] = $oc->retreiveTotalUnprocessedOrder();
 		$retArr["result"] = $oc->getAllUnprocessedOrder(0);
 		$retArr["notProcessed"]= $processableList["cannotBeProcessed"];
 		if (count($processableList["cannotBeProcessed"])>0)
@@ -334,7 +336,7 @@ try{
 		$slc = new StoreListController($conn);
 		$slc->addNewStore($store_id, $name, $location, $password);
 		$retArr["total"] = $slc->retrieveTotalStore();
-		$retArr["result"] = $slc->retrieveStoreList($offset);
+		$retArr["result"] = $slc->retrieveStoreList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_store_info":
@@ -354,7 +356,7 @@ try{
 		$store_id = $p["store_id"];
 		$slc->editStoreInformation($store_id, $name, $location, $password);
 		$retArr["total"] = $slc->retrieveTotalStore();
-		$retArr["result"] = $slc->retrieveStoreList($offset);
+		$retArr["result"] = $slc->retrieveStoreList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "delete_store":
@@ -364,7 +366,7 @@ try{
 		$slc->deleteStore($store_id);
 		$retArr["store_id"] = $store_id;
 		$retArr["total"] = $slc->retrieveTotalStore();
-		$retArr["result"] = $slc->retrieveStoreList($offset);
+		$retArr["result"] = $slc->retrieveStoreList(0);
 		$retArr["status"] = $OK;
 		break;
 	case "retrieve_pricing_list":
@@ -409,14 +411,25 @@ try{
 		require_once("../../objects/Controller/WarehouseController.php");
 		require_once("../../objects/Controller/PricingController.php");	
 		$wsc = new WebStoreController($conn);
+		$wsc->readJson();
+		//webstore assumption all of the products are readily available and ready to send 
+		$retArr["status"] = $OK;
+		break;
+	case "webstore_process_request":
+		//grab the total number of orders per barcode
+		require_once("../../objects/Controller/WebStoreController.php");
+		require_once("../../objects/Controller/WarehouseController.php");
+		require_once("../../objects/Controller/PricingController.php");	
+		$wsc = new WebStoreController($conn);
 		$wc = new WarehouseController($conn);
 		$pc  = new PricingController($conn);
-		
-		$toBeShipped = $wsc->retrieveWebStoreOrders();
+		$toBeOrdered = $wsc->retrieveWebStoreOrders();
 		//grab the total available stocks per barcode
-		
+		$availableBarcode = $wc->retrieveStockForOrder($toBeOrdered);
+		//grab the total available stocks per barcode
+		$toBeShipped = $wsc->checkProcessableOrder($availableBarcode, $toBeOrdered);	
 		//webstore assumption all of the products are readily available and ready to send 
-		$wsc->processToBeShipped($toBeShipped);
+		$wsc->processToBeShipped($toBeShipped["canBeProcessed"]);
 		$availableStocks = $wc->retrieveTotalProductStock();
 		$pc->updatePricing($availableStocks);
 		$wsc->sendStatistics();

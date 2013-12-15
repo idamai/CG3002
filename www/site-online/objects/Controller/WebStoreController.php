@@ -66,6 +66,7 @@
 						$i++;
 					}
 					mysql_query("INSERT INTO product_sales(barcode, date, store_id, sales, writeoff) VALUES ('$barcode', '$date', '$shop_id', '$quantity', 0)",$this->connection);
+					mysql_query("INSERT INTO webstore_order(barcode, date, quantity, processed ) VALUES ('$barcode', '$date',  '$quantity', 0)",$this->connection);
 				}
 				$revenue = $this->decrypt($json['total']);
 				$sql= "SELECT * FROM `balance_sheet` WHERE `date` = CURDATE() AND `account` = 601 AND `store_id` = 0";
@@ -74,6 +75,7 @@
 				$rows = mysql_num_rows($res);
 				if  ($rows == 0) {
 					$sql = "INSERT INTO `balance_sheet` ( `date` , `account` , `store_id` , `amount` ) VALUES ( CURDATE() , 601, 0 , ".$revenue." )";
+					echo $sql;
 					$res = mysql_query($sql,$this->connection);
 					if (!$res) throw new Exception("Database access failed: " . mysql_error());
 				} else {
@@ -83,13 +85,69 @@
 				}
 				unlink('receive/'.$shop_id.'.json');
 			}
-			return $orderList;
 		}
 		
 		function retrieveWebStoreOrders() {
-			$toBeShipped = $this->readJson();
-			return $toBeShipped;
+			$sql= "SELECT `barcode`, SUM(`quantity`) as `quantity`  FROM `webstore_order` WHERE `processed` = 0 GROUP BY `barcode`";
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			$rows = mysql_num_rows($res);
+			$toBeOrdered = array();
+			for ($j = 0 ; $j < $rows ; $j++){
+				$toBeOrdered[$j] = array(
+												"barcode" => mysql_result($res,$j,'barcode'),
+												"quantity" => mysql_result($res,$j,'quantity')
+											);		
+			}
+			return $toBeOrdered;
 		}
+		
+		function checkProcessableOrder($availableBarcode, $toBeOrdered){
+			$canBeProcessed = array();
+			$cannotBeProcessed = array();
+			$cannotBeProcessedIndex = array();
+			$normalizing = 0;
+			if (count($toBeOrdered)> count($availableBarcode)){
+				for ($j  = 0; $j < count($toBeOrdered); $j++) {
+					if ($toBeOrdered[$j]["barcode"]!= $availableBarcode[$j-$normalizing]["barcode"]) {
+						$cannotBeProcessed[] = array(
+							"barcode" => $toBeOrdered[$j]["barcode"],
+							"quantity" => $toBeOrdered[$j]["quantity"]
+						);
+						$normalizing+=1;				
+					} else if($toBeOrdered[$j]["quantity"]> $availableBarcode[$j-$normalizing]["stock"]){
+						$cannotBeProcessed[]= array(
+							"barcode" => $toBeOrdered[$j]["barcode"],
+							"quantity" => $toBeOrdered[$j]["quantity"]
+						);
+					} else
+						$canBeProcessed[] = array(
+							"barcode" => $toBeOrdered[$j]["barcode"],
+							"quantity" => $toBeOrdered[$j]["quantity"]
+						);
+				}
+			} else if (count($toBeOrdered)== count($availableBarcode)) {
+				for ($j  = 0; $j < count($toBeOrdered); $j++){
+					if($toBeOrdered[$j]["quantity"]> $availableBarcode[$j]["stock"]){
+						$cannotBeProcessed[] =  array(
+							"barcode" => $toBeOrdered[$j]["barcode"],
+							"quantity" => $toBeOrdered[$j]["quantity"]
+						);
+					} else {
+						$canBeProcessed[] = array(
+							"barcode" => $toBeOrdered[$j]["barcode"],
+							"quantity" => $toBeOrdered[$j]["quantity"]
+						);
+					}
+				}
+			}
+			$retArr = array (
+								"canBeProcessed" => $canBeProcessed,
+								"cannotBeProcessed" => $cannotBeProcessed
+							);
+			return $retArr;
+		}
+		
 		//assumption the warehouse always have enough stock for webstore
 		function processToBeShipped($toBeShipped) {
 			if (count($toBeShipped) > 0) {
@@ -220,6 +278,10 @@
 												);
 			}
 			$sql = 'UPDATE `product_shipped` SET  `processed` = 1 WHERE `processed` = 0';
+			$res = mysql_query($sql,$this->connection);
+			if (!$res) throw new Exception("Database access failed: " . mysql_error());
+			
+			$sql = 'UPDATE `webstore_order` SET  `processed` = 1 WHERE `processed` = 0';
 			$res = mysql_query($sql,$this->connection);
 			if (!$res) throw new Exception("Database access failed: " . mysql_error());
 			

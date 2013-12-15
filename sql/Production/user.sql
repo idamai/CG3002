@@ -1,0 +1,1 @@
+INSERT INTO `admin` VALUES ("admin",MD5("iamsexy#1"));

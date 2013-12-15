@@ -63,25 +63,29 @@
 		}		
 		
 		function retrieveStockForOrder($toBeOrdered) {
-			$sql = "SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` WHERE `barcode` in (";
-			for ($j = 0; $j < count($toBeOrdered) ; $j++){
-				if ($j > 0) {
-					$sql.=" , ";
+			if ($toBeOrdered!=null) {
+				$sql = "SELECT `barcode`, SUM(`stock`) as `stock` FROM `warehouse` WHERE `barcode` in (";
+				for ($j = 0; $j < count($toBeOrdered) ; $j++){
+					if ($j > 0) {
+						$sql.=" , ";
+					}
+					$sql.=$toBeOrdered[$j]["barcode"];
 				}
-				$sql.=$toBeOrdered[$j]["barcode"];
+				$sql .= ") GROUP BY `barcode`";
+				$res = mysql_query($sql,$this->connection);
+				if (!$res) throw new Exception("Database access failed: " . mysql_error());
+				$rows = mysql_num_rows($res);
+				$availableBarcode = array();
+				for ($j = 0 ; $j < $rows ; $j++){
+					$availableBarcode[$j] = array(
+													"barcode" => mysql_result($res,$j,'barcode'),
+													"stock" => mysql_result($res,$j,'stock')
+												);		
+				}
+				return $availableBarcode;
+			} else {
+				return null;
 			}
-			$sql .= ") GROUP BY `barcode`";
-			$res = mysql_query($sql,$this->connection);
-			if (!$res) throw new Exception("Database access failed: " . mysql_error());
-			$rows = mysql_num_rows($res);
-			$availableBarcode = array();
-			for ($j = 0 ; $j < $rows ; $j++){
-				$availableBarcode[$j] = array(
-												"barcode" => mysql_result($res,$j,'barcode'),
-												"stock" => mysql_result($res,$j,'stock')
-											);		
-			}
-			return $availableBarcode;
 		}
 		
 		function retrieveTotalProductStock() {

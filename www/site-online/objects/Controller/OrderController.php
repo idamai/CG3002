@@ -377,7 +377,7 @@
 			return $toBeOrdered;
 		}
 		
-		function getALlOrderForDate($date) {
+		function getAllOrderForDate($date) {
 			$date = mysql_real_escape_string($date);
 			$sql = 'SELECT `barcode`, sum(`quantity`) as `quantity` FROM `product_order` WHERE `processed` = 0 AND `date` = "'.$date.'" GROUP BY `barcode`';
 			$res = mysql_query($sql,$this->connection);
